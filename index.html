@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Smart Visual POS & Stock — ระบบขายหน้าร้านและจัดการสต็อกในหน้าเดียว</title>
+  <title>Smart Visual POS & Stock — ระบบขายหน้าร้านและแกะแพ็คแยกขายในหน้าเดียว</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -21,6 +21,9 @@
       --brand-soft: #f0fdfa;
       --brand-border: #99f6e4;
       --brand-ink: #ffffff;
+      --purple: #7c3aed;
+      --purple-soft: #f5f3ff;
+      --purple-border: #ddd6fe;
       --warning: #d97706;
       --warning-soft: #fffbeb;
       --danger: #dc2626;
@@ -54,14 +57,14 @@
 
     .app-shell {
       display: grid;
-      grid-template-columns: 92px 1fr 370px;
+      grid-template-columns: 92px 1fr 380px;
       width: 100%;
       height: 100vh;
       overflow: hidden;
     }
 
     @media (max-width: 960px) {
-      .app-shell { grid-template-columns: 76px 1fr 310px; }
+      .app-shell { grid-template-columns: 76px 1fr 315px; }
     }
 
     /* 1. Left Navigation Rail */
@@ -92,7 +95,7 @@
       color: #94a3b8; padding: 12px 6px; border-radius: var(--radius);
       cursor: pointer; display: flex; flex-direction: column;
       align-items: center; gap: 6px; font: inherit;
-      font-size: 0.75rem; font-weight: 600; text-align: center;
+      font-size: 0.72rem; font-weight: 600; text-align: center;
     }
     .rail-tab-btn:hover { background: #1e293b; color: #f8fafc; }
     .rail-tab-btn.active { background: var(--brand); color: #ffffff; }
@@ -109,7 +112,7 @@
     .center-stage {
       display: flex; flex-direction: column;
       height: 100vh; overflow: hidden;
-      padding: 16px 20px; gap: 14px;
+      padding: 16px 20px; gap: 12px;
     }
 
     .top-bar {
@@ -158,7 +161,7 @@
       padding: 7px 14px; border-radius: var(--radius-sm);
       border: 1px solid var(--border-strong); background: var(--surface); cursor: pointer;
     }
-    .stage-title { margin: 0; font-size: 1.1rem; font-weight: 700; }
+    .stage-title { margin: 0; font-size: 1.08rem; font-weight: 700; }
 
     .mode-pill {
       display: inline-flex; align-items: center; gap: 6px;
@@ -188,13 +191,10 @@
     .cat-name { font-size: 1.05rem; font-weight: 700; margin: 0; }
     .cat-meta { font-size: 0.78rem; color: var(--muted); margin: 0; }
 
-    /* Product Grid:
-       - Top-Right: Remaining Stock Badge
-       - Center: Product Image from Column C (or Category Icon Fallback)
-       - Bottom: Product Name, SKU, and Price */
+    /* Product Grid */
     .product-grid-stage {
       flex: 1; display: flex; flex-direction: column;
-      gap: 12px; min-height: 0; overflow: hidden;
+      gap: 10px; min-height: 0; overflow: hidden;
     }
 
     .product-grid {
@@ -232,6 +232,20 @@
     .product-card:hover { border-color: var(--brand); box-shadow: var(--shadow); transform: translateY(-2px); }
     .product-card.stock-edit-card:hover { border-color: var(--warning); }
     .product-card.selected-for-edit { border-color: var(--warning); background: var(--warning-soft); }
+
+    .prod-pack-badge {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: var(--purple-soft);
+      border: 1px solid var(--purple-border);
+      color: var(--purple);
+      z-index: 2;
+    }
 
     .prod-stock-badge {
       position: absolute;
@@ -302,7 +316,7 @@
     }
 
     .prod-name {
-      font-size: 0.88rem;
+      font-size: 0.85rem;
       font-weight: 700;
       margin: 0;
       color: var(--ink);
@@ -322,20 +336,73 @@
       padding: 0 2px;
     }
 
-    .prod-sku { font-size: 0.68rem; color: var(--muted); font-family: monospace; }
-    .prod-price { font-size: 0.96rem; font-weight: 700; color: var(--brand); }
+    .prod-sku { font-size: 0.66rem; color: var(--muted); font-family: monospace; }
+    .prod-price { font-size: 0.94rem; font-weight: 700; color: var(--brand); }
 
-    /* Inline Stock/Price Editor Bar */
+    /* Inline Stock/Price & Pack Breakdown Editor Bar */
     .stock-editor-bar {
-      background: var(--surface); border: 1.5px solid var(--warning);
-      border-radius: var(--radius); padding: 12px 16px;
-      display: flex; align-items: center; justify-content: space-between;
-      gap: 12px; flex-shrink: 0; box-shadow: var(--shadow); flex-wrap: wrap;
+      background: var(--surface);
+      border: 1.5px solid var(--warning);
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex-shrink: 0;
+      box-shadow: var(--shadow);
     }
-    .editor-fields { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+    .editor-top-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .editor-submode-tabs {
+      display: inline-flex;
+      background: var(--surface-subtle);
+      border: 1px solid var(--border-strong);
+      border-radius: 8px;
+      padding: 2px;
+      gap: 4px;
+    }
+
+    .submode-btn {
+      font: inherit;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 5px 10px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .submode-btn.active {
+      background: var(--warning);
+      color: #ffffff;
+    }
+
+    .submode-btn.active-unpack {
+      background: var(--purple);
+      color: #ffffff;
+    }
+
+    .editor-fields {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
     .editor-field { display: flex; align-items: center; gap: 6px; }
-    .editor-field label { font-size: 0.8rem; font-weight: 600; color: var(--muted); white-space: nowrap; }
-    .editor-input { width: 96px; font: inherit; font-size: 0.9rem; font-weight: 700; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-strong); text-align: right; }
+    .editor-field label { font-size: 0.78rem; font-weight: 600; color: var(--muted); white-space: nowrap; }
+    .editor-input { width: 84px; font: inherit; font-size: 0.88rem; font-weight: 700; padding: 5px 8px; border-radius: 6px; border: 1px solid var(--border-strong); text-align: right; }
+    .editor-select { font: inherit; font-size: 0.82rem; font-weight: 600; padding: 5px 8px; border-radius: 6px; border: 1px solid var(--border-strong); max-width: 210px; }
 
     /* 3. Right Summary Sidebar */
     .right-summary {
@@ -350,8 +417,9 @@
     .summary-list { flex: 1; display: flex; flex-direction: column; gap: 8px; padding: 12px 4px 12px 0; min-height: 0; overflow-y: auto; }
     .summary-empty { margin: auto; text-align: center; color: var(--muted); font-size: 0.85rem; padding: 20px; }
     .summary-item { background: var(--surface-subtle); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 10px; display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-shrink: 0; }
+    .summary-item.unpack-item { background: var(--purple-soft); border-color: var(--purple-border); }
     .sum-item-info { min-width: 0; flex: 1; }
-    .sum-item-name { font-size: 0.85rem; font-weight: 600; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sum-item-name { font-size: 0.84rem; font-weight: 600; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .sum-item-sub { font-size: 0.72rem; color: var(--muted); }
 
     .qty-stepper { display: inline-flex; align-items: center; border: 1px solid var(--border-strong); border-radius: 6px; background: var(--surface); overflow: hidden; }
@@ -367,6 +435,7 @@
     .btn { font: inherit; font-size: 0.9rem; font-weight: 600; padding: 11px 16px; border-radius: var(--radius-sm); border: 1px solid transparent; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
     .btn-primary { background: var(--brand); color: var(--brand-ink); }
     .btn-warning { background: var(--warning); color: #ffffff; }
+    .btn-purple { background: var(--purple); color: #ffffff; }
     .btn-secondary { background: var(--surface); color: var(--ink); border-color: var(--border-strong); }
     .action-stack { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
 
@@ -427,7 +496,7 @@
 
         <button type="button" class="rail-tab-btn" id="navStockBtn">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
-          <span>เพิ่มสต็อก<br>&amp; ปรับราคา</span>
+          <span>เพิ่มสต็อก /<br>✂️ แกะแพ็ค</span>
         </button>
       </nav>
 
@@ -467,26 +536,63 @@
       <section id="productGridView" class="product-grid-stage" hidden>
         <div id="productGridContainer" class="product-grid"></div>
 
-        <form id="stockEditForm" class="stock-editor-bar" hidden>
-          <div>
-            <div style="font-size:0.75rem; color:var(--warning); font-weight:700;">กำลังเลือกปรับปรุงรายการ:</div>
-            <div style="font-size:0.9rem; font-weight:700;" id="editingProductLabel">-</div>
+        <!-- แถบจัดการสต็อก/ราคา และปุ่ม ✂️ แกะแพ็คแยกขาย -->
+        <div id="stockEditPanel" class="stock-editor-bar" hidden>
+          <div class="editor-top-row">
+            <div>
+              <span style="font-size:0.75rem; color:var(--warning); font-weight:700;">สินค้าที่เลือก:</span>
+              <strong style="font-size:0.9rem; margin-left:4px;" id="editingProductLabel">-</strong>
+            </div>
+
+            <div class="editor-submode-tabs" role="group">
+              <button type="button" id="submodeRestockBtn" class="submode-btn active">
+                📦 เพิ่มสต็อก &amp; ปรับราคา
+              </button>
+              <button type="button" id="submodeUnpackBtn" class="submode-btn">
+                ✂️ แกะแพ็คแยกขาย (หักแพ็คใหญ่ → เพิ่มชิ้นย่อย)
+              </button>
+            </div>
           </div>
 
-          <div class="editor-fields">
-            <div class="editor-field">
-              <label for="addStockQtyInput">เพิ่มจำนวนสต็อก (+):</label>
-              <input type="number" id="addStockQtyInput" class="editor-input" min="0" value="0">
+          <!-- ฟอร์มย่อยที่ 1: เพิ่มสต็อก & ปรับราคาปกติ -->
+          <form id="restockForm" class="editor-fields">
+            <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+              <div class="editor-field">
+                <label for="addStockQtyInput">เพิ่มจำนวนสต็อก (+):</label>
+                <input type="number" id="addStockQtyInput" class="editor-input" min="0" value="0">
+              </div>
+              <div class="editor-field">
+                <label for="newPriceInput">ราคาขายใหม่ (฿):</label>
+                <input type="number" id="newPriceInput" class="editor-input" min="1" value="0">
+              </div>
             </div>
-            <div class="editor-field">
-              <label for="newPriceInput">ราคาขายใหม่ (฿):</label>
-              <input type="number" id="newPriceInput" class="editor-input" min="1" value="0">
-            </div>
-            <button type="submit" class="btn btn-warning" style="padding: 8px 14px; font-size:0.85rem;">
+            <button type="submit" class="btn btn-warning" style="padding: 7px 14px; font-size:0.84rem;">
               + เพิ่มเข้าคิวปรับปรุง
             </button>
-          </div>
-        </form>
+          </form>
+
+          <!-- ฟอร์มย่อยที่ 2: ✂️ แกะแพ็คใหญ่เป็นชิ้นย่อย -->
+          <form id="unpackForm" class="editor-fields" hidden>
+            <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+              <div class="editor-field">
+                <label for="unpackParentQtyInput">แกะแพ็คใหญ่ (-):</label>
+                <input type="number" id="unpackParentQtyInput" class="editor-input" min="1" value="1" style="width:68px;">
+                <span id="unpackParentUnitLabel" style="font-size:0.78rem; font-weight:700;">มัด</span>
+              </div>
+              <div class="editor-field">
+                <label for="unpackTargetSkuSelect">เข้าสินค้าชิ้นย่อย:</label>
+                <select id="unpackTargetSkuSelect" class="editor-select"></select>
+              </div>
+              <div class="editor-field">
+                <label for="unpackRatioInput">แพ็คละ (ชิ้น):</label>
+                <input type="number" id="unpackRatioInput" class="editor-input" min="1" value="10" style="width:74px;">
+              </div>
+            </div>
+            <button type="submit" class="btn btn-purple" style="padding: 7px 14px; font-size:0.84rem;">
+              ✂️ เพิ่มรายการแกะแพ็คเข้าคิว
+            </button>
+          </form>
+        </div>
       </section>
     </main>
 
@@ -593,31 +699,27 @@
     ];
 
     let categories = [
-      { id: 'ตัวเบ็ดตกปลา', name: 'ตัวเบ็ดตกปลา', desc: 'เบ็ดไดม่อน เบ็ดดำ (หลายเบอร์)', ...categoryVisualPresets[0] },
+      { id: 'ตัวเบ็ดตกปลา', name: 'ตัวเบ็ดตกปลา', desc: 'เบ็ดไดม่อน เบ็ดดำ (ทั้งยกมัด & แบ่งขาย)', ...categoryVisualPresets[0] },
       { id: 'สายเอ็น & สายพีอี', name: 'สายเอ็น & สายพีอี', desc: 'สายเอ็นโหลด สายถัก PE', ...categoryVisualPresets[1] },
       { id: 'ทุ่น & ตะกั่วถ่วง', name: 'ทุ่น & ตะกั่วถ่วง', desc: 'ทุ่นชิงหลิว ตะกั่วฟิวส์', ...categoryVisualPresets[2] },
-      { id: 'เหยื่อตกปลา & หัวเชื้อ', name: 'เหยื่อตกปลา & หัวเชื้อ', desc: 'รำบ่ม เหยื่อผง หัวเชื้อ', ...categoryVisualPresets[3] },
-      { id: 'เมล็ดกาแฟ & เครื่องดื่ม', name: 'เมล็ดกาแฟ & เครื่องดื่ม', desc: 'กาแฟคั่วบด อาราบิก้า', ...categoryVisualPresets[4] },
-      { id: 'อุปกรณ์เสริม & จิปาถะ', name: 'อุปกรณ์เสริม & จิปาถะ', desc: 'แก้วดริป กระดาษกรอง', ...categoryVisualPresets[5] }
+      { id: 'เหยื่อตกปลา & หัวเชื้อ', name: 'เหยื่อตกปลา & หัวเชื้อ', desc: 'รำบ่ม เหยื่อผง หัวเชื้อ', ...categoryVisualPresets[3] }
     ];
 
+    // ตัวอย่างสินค้าที่มีคู่รหัสแพ็คใหญ่ (-PK) และรหัสแบ่งขายชิ้นย่อย
     const products = [
-      { sku: 'HK-D01', catId: 'ตัวเบ็ดตกปลา', name: 'เบ็ดไดม่อน เบอร์ 1', spec: 'เบอร์ 1', imageUrl: '', price: 45, stock: 20, unit: 'กล่อง' },
-      { sku: 'HK-D02', catId: 'ตัวเบ็ดตกปลา', name: 'เบ็ดไดม่อน เบอร์ 2', spec: 'เบอร์ 2', imageUrl: '', price: 45, stock: 22, unit: 'กล่อง' },
-      { sku: 'HK-D03', catId: 'ตัวเบ็ดตกปลา', name: 'เบ็ดไดม่อน เบอร์ 3', spec: 'เบอร์ 3', imageUrl: '', price: 45, stock: 24, unit: 'กล่อง' },
-      { sku: 'HK-D04', catId: 'ตัวเบ็ดตกปลา', name: 'เบ็ดไดม่อน เบอร์ 4', spec: 'เบอร์ 4', imageUrl: '', price: 45, stock: 19, unit: 'กล่อง' },
-      { sku: 'HK-D05', catId: 'ตัวเบ็ดตกปลา', name: 'เบ็ดไดม่อน เบอร์ 5', spec: 'เบอร์ 5', imageUrl: '', price: 45, stock: 18, unit: 'กล่อง' },
-      { sku: 'HK-B04', catId: 'ตัวเบ็ดตกปลา', name: 'เบ็ดดำ เบอร์ 4', spec: 'เบอร์ 4', imageUrl: '', price: 35, stock: 30, unit: 'กล่อง' },
-      { sku: 'HK-B05', catId: 'ตัวเบ็ดตกปลา', name: 'เบ็ดดำ เบอร์ 5', spec: 'เบอร์ 5', imageUrl: '', price: 35, stock: 22, unit: 'กล่อง' },
-      { sku: 'LN-10', catId: 'สายเอ็น & สายพีอี', name: 'สายเอ็นโหลด 10 ปอนด์', spec: '10 lb', imageUrl: '', price: 120, stock: 14, unit: 'ม้วน' },
-      { sku: 'PE-02', catId: 'สายเอ็น & สายพีอี', name: 'สายถัก PE ถัก 8 เบอร์ 2.0', spec: 'PE 2.0', imageUrl: '', price: 280, stock: 9, unit: 'ม้วน' },
-      { sku: 'FT-01', catId: 'ทุ่น & ตะกั่วถ่วง', name: 'ทุ่นชิงหลิว นาโน เบอร์ 1', spec: 'เบอร์ 1', imageUrl: '', price: 85, stock: 16, unit: 'ดอก' },
-      { sku: 'BT-01', catId: 'เหยื่อตกปลา & หัวเชื้อ', name: 'รำบ่มหอมพิเศษ สูตรต้นตำรับ', spec: 'ดั้งเดิม', imageUrl: '', price: 40, stock: 35, unit: 'ถุง' },
-      { sku: 'CF-001', catId: 'เมล็ดกาแฟ & เครื่องดื่ม', name: 'กาแฟคั่วบด ดอยช้าง 250g', spec: '250g', imageUrl: '', price: 250, stock: 20, unit: 'ถุง' },
-      { sku: 'EQ-001', catId: 'อุปกรณ์เสริม & จิปาถะ', name: 'แก้วดริปกาแฟ เซรามิก', spec: 'เซรามิก', imageUrl: '', price: 350, stock: 10, unit: 'ใบ' }
+      { sku: 'HK-DMN-BLK-05-PK', catId: 'ตัวเบ็ดตกปลา', name: 'เบ็ดไดม่อนสีดำ เบอร์ 5 (ยกมัด 10 กล่อง)', spec: 'ยกมัด 10', imageUrl: '', price: 400, stock: 5, unit: 'มัด' },
+      { sku: 'HK-DMN-BLK-05', catId: 'ตัวเบ็ดตกปลา', name: 'เบ็ดไดม่อนสีดำ เบอร์ 5', spec: 'เบอร์ 5', imageUrl: '', price: 45, stock: 8, unit: 'กล่อง' },
+      { sku: 'HK-DMN-BLK-06-PK', catId: 'ตัวเบ็ดตกปลา', name: 'เบ็ดไดม่อนสีดำ เบอร์ 6 (ยกมัด 10 กล่อง)', spec: 'ยกมัด 10', imageUrl: '', price: 450, stock: 4, unit: 'มัด' },
+      { sku: 'HK-DMN-BLK-06', catId: 'ตัวเบ็ดตกปลา', name: 'เบ็ดไดม่อนสีดำ เบอร์ 6', spec: 'เบอร์ 6', imageUrl: '', price: 50, stock: 12, unit: 'กล่อง' },
+      { sku: 'LN-LD-10-PK', catId: 'สายเอ็น & สายพีอี', name: 'สายเอ็นโหลด 10 ปอนด์ (ยกแพ็ค 6 ม้วน)', spec: 'แพ็ค 6', imageUrl: '', price: 650, stock: 3, unit: 'แพ็ค' },
+      { sku: 'LN-LD-10', catId: 'สายเอ็น & สายพีอี', name: 'สายเอ็นโหลด 10 ปอนด์', spec: '10 lb', imageUrl: '', price: 120, stock: 10, unit: 'ม้วน' },
+      { sku: 'FT-NN-01', catId: 'ทุ่น & ตะกั่วถ่วง', name: 'ทุ่นชิงหลิว นาโน เบอร์ 1', spec: 'เบอร์ 1', imageUrl: '', price: 85, stock: 16, unit: 'ดอก' },
+      { sku: 'BT-OR-01-PK', catId: 'เหยื่อตกปลา & หัวเชื้อ', name: 'รำบ่มหอมพิเศษ (ยกลัง 20 ถุง)', spec: 'ลัง 20', imageUrl: '', price: 700, stock: 6, unit: 'ลัง' },
+      { sku: 'BT-OR-01', catId: 'เหยื่อตกปลา & หัวเชื้อ', name: 'รำบ่มหอมพิเศษ', spec: 'แบ่งขาย', imageUrl: '', price: 40, stock: 25, unit: 'ถุง' }
     ];
 
     let activeTab = 'SALE';
+    let activeStockSubmode = 'RESTOCK'; // 'RESTOCK' | 'UNPACK'
     let selectedCategoryId = null;
     let selectedEditSku = null;
     let billCounter = 1;
@@ -631,11 +733,19 @@
     let activeSecretPin = '';
     let isCloudConnected = false;
 
+    function isPackProduct(p) {
+      return /-(PK|PACK)$/i.test(p.sku) || /(ยกมัด|ยกแพ็ค|ยกลัง|แพ็คใหญ่)/.test(p.name);
+    }
+
+    function extractPackSizeFromName(name) {
+      const m = String(name || '').match(/(?:ยกมัด|ยกแพ็ค|ยกลัง|แพ็คละ|มัดละ|ลังละ|แพ็ค|มัด|ลัง)\s*(\d+)/i);
+      return m ? parseInt(m[1], 10) : 10;
+    }
+
     function resolveProductImageUrl(rawUrl) {
       if (!rawUrl || typeof rawUrl !== 'string') return '';
       const trimmed = rawUrl.trim();
       if (!trimmed.startsWith('http') && !trimmed.startsWith('data:image/')) return '';
-
       if (trimmed.includes('drive.google.com')) {
         const idMatch = trimmed.match(/\/d\/([a-zA-Z0-9_-]{20,})/) || trimmed.match(/[?&]id=([a-zA-Z0-9_-]{20,})/);
         if (idMatch && idMatch[1]) {
@@ -646,7 +756,7 @@
     }
 
     function extractSpecTag(name) {
-      const m = String(name || '').match(/(เบอร์\s*[\d.]+|\d+\s*(?:lb|ปอนด์|หุน|นิ้ว|มิล|g|ml|กก\.))/i);
+      const m = String(name || '').match(/(ยกมัด\s*\d+|ยกแพ็ค\s*\d+|ยกลัง\s*\d+|เบอร์\s*[\d.]+|\d+\s*(?:lb|ปอนด์|หุน|นิ้ว|มิล|g|ml|กก\.))/i);
       return m ? m[1] : '';
     }
 
@@ -673,7 +783,7 @@
         if (!r[0]) return;
         const sku = String(r[0]).trim();
         const name = String(r[1] || sku).trim();
-        const rawColC = String(r[2] || '').trim(); // อ่านลิงก์รูปจากคอลัมน์ C ที่สคริปต์หลังบ้านใส่ไว้
+        const rawColC = String(r[2] || '').trim();
         const catName = String(r[3] || 'สินค้าทั่วไป').trim();
         const unit = String(r[4] || 'ชิ้น').trim();
         const price = Number(r[6]) || 0;
@@ -773,7 +883,7 @@
       document.getElementById('categoryGridView').hidden = false;
       document.getElementById('productGridView').hidden = true;
       document.getElementById('backToCategoriesBtn').hidden = true;
-      document.getElementById('stockEditForm').hidden = true;
+      document.getElementById('stockEditPanel').hidden = true;
       document.getElementById('stageHeading').textContent = 'เลือกหมวดหมู่สินค้า (คลิกที่รูปเพื่อดูรายการสินค้า)';
     }
 
@@ -786,6 +896,7 @@
       container.innerHTML = list.map(p => {
         const isSelectedForEdit = activeTab === 'STOCK' && selectedEditSku === p.sku;
         const isLow = p.stock <= 5;
+        const isPack = isPackProduct(p);
         const resolvedImg = resolveProductImageUrl(p.imageUrl);
 
         const centerVisualHtml = resolvedImg
@@ -795,6 +906,7 @@
 
         return `
           <div class="product-card ${activeTab === 'STOCK' ? 'stock-edit-card' : ''} ${isSelectedForEdit ? 'selected-for-edit' : ''}" data-prod-sku="${p.sku}">
+            ${isPack ? '<span class="prod-pack-badge">📦 แพ็คใหญ่</span>' : ''}
             <span class="prod-stock-badge ${isLow ? 'low' : ''}">เหลือ ${p.stock} ${p.unit}</span>
             <div class="prod-center-image" style="background:${cat ? cat.bg : '#f1f5f9'};">
               ${centerVisualHtml}
@@ -816,6 +928,45 @@
       });
     }
 
+    function setStockSubmode(submode) {
+      activeStockSubmode = submode;
+      const restockBtn = document.getElementById('submodeRestockBtn');
+      const unpackBtn = document.getElementById('submodeUnpackBtn');
+      const restockForm = document.getElementById('restockForm');
+      const unpackForm = document.getElementById('unpackForm');
+
+      if (submode === 'UNPACK') {
+        restockBtn.classList.remove('active');
+        unpackBtn.classList.add('active-unpack');
+        restockForm.hidden = true;
+        unpackForm.hidden = false;
+      } else {
+        unpackBtn.classList.remove('active-unpack');
+        restockBtn.classList.add('active');
+        restockForm.hidden = false;
+        unpackForm.hidden = true;
+      }
+    }
+
+    function populateUnpackTargetOptions(parentProduct) {
+      const selectEl = document.getElementById('unpackTargetSkuSelect');
+      const baseChildSku = parentProduct.sku.replace(/-(PK|PACK)$/i, '');
+
+      // ดึงสินค้าชิ้นย่อยในหมวดเดียวกันมาให้เลือก โดยเรียงตัวที่รหัสตรงกับแพ็คใหญ่นี้ขึ้นก่อน
+      const candidates = products.filter(p => p.sku !== parentProduct.sku && p.catId === parentProduct.catId);
+      const others = products.filter(p => p.sku !== parentProduct.sku && p.catId !== parentProduct.catId);
+      const allTargets = [...candidates, ...others];
+
+      selectEl.innerHTML = allTargets.map(t => {
+        const isMatchedChild = t.sku.toUpperCase() === baseChildSku.toUpperCase();
+        return `<option value="${t.sku}" ${isMatchedChild ? 'selected' : ''}>${t.name} (${t.sku} • เหลือ ${t.stock} ${t.unit})</option>`;
+      }).join('');
+
+      document.getElementById('unpackParentUnitLabel').textContent = parentProduct.unit;
+      document.getElementById('unpackParentQtyInput').value = 1;
+      document.getElementById('unpackRatioInput').value = extractPackSizeFromName(parentProduct.name);
+    }
+
     function handleProductSelection(sku) {
       const product = products.find(p => p.sku === sku);
       if (!product) return;
@@ -826,13 +977,24 @@
         if (selectedCategoryId !== product.catId) openCategory(product.catId);
         selectedEditSku = sku;
         renderProductGrid();
-        const form = document.getElementById('stockEditForm');
-        form.hidden = false;
-        document.getElementById('editingProductLabel').textContent = `${product.name} (เหลือ ${product.stock} ${product.unit})`;
-        const existingQueue = stockUpdateQueue.find(q => q.sku === sku);
+        const panel = document.getElementById('stockEditPanel');
+        panel.hidden = false;
+        document.getElementById('editingProductLabel').textContent = `${product.name} (คงเหลือ ${product.stock} ${product.unit})`;
+
+        // Fill Restock fields
+        const existingQueue = stockUpdateQueue.find(q => q.type === 'RESTOCK' && q.sku === sku);
         document.getElementById('addStockQtyInput').value = existingQueue ? existingQueue.addQty : 10;
         document.getElementById('newPriceInput').value = existingQueue ? existingQueue.newPrice : product.price;
-        document.getElementById('addStockQtyInput').focus();
+
+        // Fill Unpack fields
+        populateUnpackTargetOptions(product);
+
+        // หากคลิกที่การ์ดแพ็คใหญ่ (-PK) ให้สลับไปโหมด ✂️ แกะแพ็คแยกขาย ให้อัตโนมัติทันที
+        if (isPackProduct(product)) {
+          setStockSubmode('UNPACK');
+        } else {
+          setStockSubmode('RESTOCK');
+        }
       }
     }
 
@@ -848,7 +1010,8 @@
       renderRightSummary();
     }
 
-    document.getElementById('stockEditForm').addEventListener('submit', (e) => {
+    // Submit Normal Restock / Price Edit
+    document.getElementById('restockForm').addEventListener('submit', (e) => {
       e.preventDefault();
       if (!selectedEditSku) return;
       const product = products.find(p => p.sku === selectedEditSku);
@@ -856,16 +1019,50 @@
 
       const addQty = Math.max(0, Number(document.getElementById('addStockQtyInput').value) || 0);
       const newPrice = Math.max(1, Number(document.getElementById('newPriceInput').value) || product.price);
-
       if (addQty === 0 && newPrice === product.price) return;
 
-      const existing = stockUpdateQueue.find(q => q.sku === selectedEditSku);
+      const existing = stockUpdateQueue.find(q => q.type === 'RESTOCK' && q.sku === selectedEditSku);
       if (existing) {
         existing.addQty = addQty;
         existing.newPrice = newPrice;
       } else {
-        stockUpdateQueue.push({ sku: product.sku, addQty, newPrice });
+        stockUpdateQueue.push({
+          id: 'Q-' + Date.now(),
+          type: 'RESTOCK',
+          sku: product.sku,
+          addQty,
+          newPrice
+        });
       }
+      renderRightSummary();
+    });
+
+    // Submit Pack Breakdown (✂️ แกะแพ็คแยกขาย)
+    document.getElementById('unpackForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (!selectedEditSku) return;
+      const parentProd = products.find(p => p.sku === selectedEditSku);
+      const childSku = document.getElementById('unpackTargetSkuSelect').value;
+      const childProd = products.find(p => p.sku === childSku);
+      if (!parentProd || !childProd) return;
+
+      const unpackQty = Math.max(1, Number(document.getElementById('unpackParentQtyInput').value) || 1);
+      const packRatio = Math.max(1, Number(document.getElementById('unpackRatioInput').value) || 1);
+
+      if (unpackQty > parentProd.stock) {
+        alert(`สต็อกแพ็คใหญ่ (${parentProd.name}) มีไม่พอแกะค่ะ (เหลือ ${parentProd.stock} ${parentProd.unit})`);
+        return;
+      }
+
+      stockUpdateQueue.push({
+        id: 'UNPACK-' + Date.now(),
+        type: 'UNPACK',
+        parentSku: parentProd.sku,
+        childSku: childProd.sku,
+        unpackQty,
+        packRatio,
+        addedChildQty: unpackQty * packRatio
+      });
       renderRightSummary();
     });
 
@@ -977,35 +1174,60 @@
         row2Label.textContent = 'ยอดชำระสุทธิ';
         row2Val.textContent = `฿${totalAmt.toLocaleString()}`;
       } else {
-        titleEl.textContent = '📦 สรุปรายการรอปรับปรุง';
+        titleEl.textContent = '📦 สรุปคิวปรับสต็อก / แกะแพ็ค';
         badgeEl.textContent = `${stockUpdateQueue.length} รายการ`;
         confirmBtn.className = 'btn btn-warning';
-        confirmBtn.textContent = '✓ ยืนยันปรับปรุงสต็อก/ราคา';
+        confirmBtn.textContent = '✓ ยืนยันบันทึกการปรับปรุง';
         reopenBtn.hidden = true;
 
         if (stockUpdateQueue.length === 0) {
-          listEl.innerHTML = `<div class="summary-empty">ยังไม่มีรายการรอปรับปรุงสต็อก/ราคา</div>`;
+          listEl.innerHTML = `<div class="summary-empty">ยังไม่มีรายการรอปรับปรุง<br><span style="font-size:0.75rem;">คลิกสินค้าเพื่อเพิ่มสต็อก หรือคลิกแพ็คใหญ่เพื่อ ✂️ แกะแพ็คแยกขาย</span></div>`;
         } else {
           listEl.innerHTML = stockUpdateQueue.map(q => {
-            const p = products.find(x => x.sku === q.sku);
-            return `
-              <div class="summary-item">
-                <div class="sum-item-info">
-                  <p class="sum-item-name">${p.name}</p>
-                  <span class="sum-item-sub">สต็อก: ${p.stock} → <strong>${p.stock + q.addQty} ${p.unit}</strong> (+${q.addQty})</span>
+            if (q.type === 'UNPACK') {
+              const parentP = products.find(x => x.sku === q.parentSku);
+              const childP = products.find(x => x.sku === q.childSku);
+              return `
+                <div class="summary-item unpack-item">
+                  <div class="sum-item-info">
+                    <p class="sum-item-name" style="color:var(--purple);">✂️ แกะแพ็ค: ${parentP.name}</p>
+                    <span class="sum-item-sub">
+                      หัก <strong>-${q.unpackQty} ${parentP.unit}</strong> → เพิ่ม <strong>+${q.addedChildQty} ${childP.unit}</strong> (${childP.sku})
+                    </span>
+                  </div>
+                  <button type="button" data-remove-id="${q.id}" style="border:none; background:transparent; color:var(--danger); font-size:0.75rem; font-weight:700; cursor:pointer;">ลบ</button>
                 </div>
-                <div style="text-align:right;">
-                  <div style="font-size:0.8rem; font-weight:700; color:var(--warning);">฿${p.price} → ฿${q.newPrice}</div>
+              `;
+            } else {
+              const p = products.find(x => x.sku === q.sku);
+              return `
+                <div class="summary-item">
+                  <div class="sum-item-info">
+                    <p class="sum-item-name">${p.name}</p>
+                    <span class="sum-item-sub">สต็อก: ${p.stock} → <strong>${p.stock + q.addQty} ${p.unit}</strong> (+${q.addQty})</span>
+                  </div>
+                  <div style="text-align:right;">
+                    <div style="font-size:0.8rem; font-weight:700; color:var(--warning);">฿${p.price} → ฿${q.newPrice}</div>
+                    <button type="button" data-remove-id="${q.id}" style="border:none; background:transparent; color:var(--danger); font-size:0.72rem; cursor:pointer;">ลบ</button>
+                  </div>
                 </div>
-              </div>
-            `;
+              `;
+            }
           }).join('');
+
+          listEl.querySelectorAll('[data-remove-id]').forEach(btn => {
+            btn.addEventListener('click', () => {
+              const id = btn.getAttribute('data-remove-id');
+              stockUpdateQueue = stockUpdateQueue.filter(x => x.id !== id);
+              renderRightSummary();
+            });
+          });
         }
 
-        const totalAddStock = stockUpdateQueue.reduce((s, q) => s + q.addQty, 0);
-        row1Label.textContent = 'จำนวนรายการที่แก้ไข';
+        const totalAddStock = stockUpdateQueue.reduce((s, q) => s + (q.type === 'UNPACK' ? q.addedChildQty : q.addQty), 0);
+        row1Label.textContent = 'จำนวนรายการในคิว';
         row1Val.textContent = `${stockUpdateQueue.length} รายการ`;
-        row2Label.textContent = 'รวมสต็อกรับเข้าเพิ่ม';
+        row2Label.textContent = 'รวมสต็อกหน่วยย่อยที่เพิ่ม';
         row2Val.textContent = `+${totalAddStock} หน่วย`;
       }
     }
@@ -1018,8 +1240,8 @@
       pill.className = tab === 'SALE' ? 'mode-pill' : 'mode-pill stock-mode';
       pill.textContent = tab === 'SALE'
         ? '🛒 โหมดขายหน้าร้าน: กดรูปหมวดหมู่เพื่อเลือกสินค้าลงบิล'
-        : '📦 โหมดจัดการคลัง: เลือกสินค้าเพื่อเพิ่มจำนวนสต็อกและปรับปรุงราคา';
-      if (tab === 'SALE') document.getElementById('stockEditForm').hidden = true;
+        : '📦 โหมดจัดการคลัง: คลิกสินค้าเพื่อเพิ่มสต็อก/ปรับราคา หรือ ✂️ แกะแพ็คแยกขาย';
+      if (tab === 'SALE') document.getElementById('stockEditPanel').hidden = true;
       if (selectedCategoryId) renderProductGrid(); else closeCategoryToHome();
       renderRightSummary();
     }
@@ -1096,10 +1318,22 @@
       } else {
         if (stockUpdateQueue.length === 0) return;
         const rows = stockUpdateQueue.map(q => {
-          const p = products.find(x => x.sku === q.sku);
-          return `<div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px dashed var(--border);"><div><strong>${p.name}</strong><div style="font-size:0.75rem;">สต็อก: ${p.stock} → <strong>${p.stock + q.addQty} ${p.unit}</strong> (+${q.addQty})</div></div><div style="font-weight:700; color:var(--warning);">฿${p.price} → ฿${q.newPrice}</div></div>`;
+          if (q.type === 'UNPACK') {
+            const parentP = products.find(x => x.sku === q.parentSku);
+            const childP = products.find(x => x.sku === q.childSku);
+            return `<div style="padding:6px 0; border-bottom:1px dashed var(--border);">
+              <strong style="color:var(--purple);">✂️ แกะแพ็คแยกขาย: ${parentP.name}</strong>
+              <div style="font-size:0.78rem; color:var(--ink); margin-top:2px;">
+                • หักสต็อกแพ็คใหญ่ (${parentP.sku}): ${parentP.stock} → <strong>${parentP.stock - q.unpackQty} ${parentP.unit}</strong> (-${q.unpackQty})<br>
+                • เพิ่มสต็อกชิ้นย่อย (${childP.sku}): ${childP.stock} → <strong>${childP.stock + q.addedChildQty} ${childP.unit}</strong> (+${q.addedChildQty})
+              </div>
+            </div>`;
+          } else {
+            const p = products.find(x => x.sku === q.sku);
+            return `<div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px dashed var(--border);"><div><strong>${p.name}</strong><div style="font-size:0.75rem;">สต็อก: ${p.stock} → <strong>${p.stock + q.addQty} ${p.unit}</strong> (+${q.addQty})</div></div><div style="font-weight:700; color:var(--warning);">฿${p.price} → ฿${q.newPrice}</div></div>`;
+          }
         }).join('');
-        titleEl.textContent = 'ยืนยันการปรับปรุงสต็อกและราคาสินค้า';
+        titleEl.textContent = 'ยืนยันการปรับปรุงสต็อก / แกะแพ็คแยกขาย';
         bodyEl.innerHTML = rows;
         commitBtn.className = 'btn btn-warning';
         commitBtn.textContent = '✓ ยืนยันบันทึกการปรับปรุง';
@@ -1143,12 +1377,41 @@
       } else {
         const txsForSheet = [];
         stockUpdateQueue.forEach(q => {
-          const p = products.find(x => x.sku === q.sku);
-          if (p) {
-            p.stock += q.addQty;
-            p.price = q.newPrice;
-            if (q.addQty > 0) {
-              txsForSheet.push({ id: `TX-${Date.now()}-${p.sku}`, time: timeStr, type: 'IN', sku: p.sku, name: p.name, qty: q.addQty, unitPrice: p.price, actor: 'เพิ่มสต็อกจากหน้าเว็บ' });
+          if (q.type === 'UNPACK') {
+            const parentP = products.find(x => x.sku === q.parentSku);
+            const childP = products.find(x => x.sku === q.childSku);
+            if (parentP && childP) {
+              parentP.stock = Math.max(0, parentP.stock - q.unpackQty);
+              childP.stock += q.addedChildQty;
+              txsForSheet.push({
+                id: `TX-UPK-OUT-${Date.now()}`,
+                time: timeStr,
+                type: 'OUT',
+                sku: parentP.sku,
+                name: parentP.name,
+                qty: q.unpackQty,
+                unitPrice: 0,
+                actor: `แกะแพ็คแยกขาย -> ${childP.sku} (+${q.addedChildQty} ${childP.unit})`
+              });
+              txsForSheet.push({
+                id: `TX-UPK-IN-${Date.now()}`,
+                time: timeStr,
+                type: 'IN',
+                sku: childP.sku,
+                name: childP.name,
+                qty: q.addedChildQty,
+                unitPrice: 0,
+                actor: `รับจากการแกะแพ็ค ${parentP.sku} (-${q.unpackQty} ${parentP.unit})`
+              });
+            }
+          } else {
+            const p = products.find(x => x.sku === q.sku);
+            if (p) {
+              p.stock += q.addQty;
+              p.price = q.newPrice;
+              if (q.addQty > 0) {
+                txsForSheet.push({ id: `TX-${Date.now()}-${p.sku}`, time: timeStr, type: 'IN', sku: p.sku, name: p.name, qty: q.addQty, unitPrice: p.price, actor: 'เพิ่มสต็อกจากหน้าเว็บ' });
+              }
             }
           }
         });
@@ -1158,13 +1421,16 @@
         }
 
         stockUpdateQueue = [];
-        document.getElementById('stockEditForm').hidden = true;
+        document.getElementById('stockEditPanel').hidden = true;
         selectedEditSku = null;
         confirmModal.classList.remove('open');
         if (selectedCategoryId) renderProductGrid();
         renderRightSummary();
       }
     });
+
+    document.getElementById('submodeRestockBtn').addEventListener('click', () => setStockSubmode('RESTOCK'));
+    document.getElementById('submodeUnpackBtn').addEventListener('click', () => setStockSubmode('UNPACK'));
 
     document.querySelectorAll('[data-print-format]').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -1192,7 +1458,6 @@
     document.getElementById('navStockBtn').addEventListener('click', () => switchWorkspaceTab('STOCK'));
     document.getElementById('backToCategoriesBtn').addEventListener('click', closeCategoryToHome);
 
-    // Google Sheets Connection Modal
     document.getElementById('openCloudModalBtn').addEventListener('click', () => document.getElementById('cloudSetupModal').classList.add('open'));
     document.getElementById('closeCloudModalBtn').addEventListener('click', () => document.getElementById('cloudSetupModal').classList.remove('open'));
 
