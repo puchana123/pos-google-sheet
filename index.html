@@ -190,7 +190,7 @@
 
     /* Product Grid:
        - Top-Right: Remaining Stock Badge
-       - Center: Product Image from Google Drive (or Category Icon Fallback)
+       - Center: Product Image from Column C (or Category Icon Fallback)
        - Bottom: Product Name, SKU, and Price */
     .product-grid-stage {
       flex: 1; display: flex; flex-direction: column;
@@ -233,7 +233,6 @@
     .product-card.stock-edit-card:hover { border-color: var(--warning); }
     .product-card.selected-for-edit { border-color: var(--warning); background: var(--warning-soft); }
 
-    /* Remaining Stock Badge at Top-Right */
     .prod-stock-badge {
       position: absolute;
       top: 10px;
@@ -249,7 +248,6 @@
     }
     .prod-stock-badge.low { background: var(--danger-soft); border-color: #fecaca; color: var(--danger); }
 
-    /* Centered Product Image / Fallback Icon */
     .prod-center-image {
       margin-top: 22px;
       width: 78px;
@@ -292,7 +290,6 @@
       z-index: 3;
     }
 
-    /* Bottom Name & Price Details */
     .prod-bottom-info {
       width: 100%;
       margin-top: 10px;
@@ -328,18 +325,17 @@
     .prod-sku { font-size: 0.68rem; color: var(--muted); font-family: monospace; }
     .prod-price { font-size: 0.96rem; font-weight: 700; color: var(--brand); }
 
-    /* Inline Stock/Price/Image Editor Bar */
+    /* Inline Stock/Price Editor Bar */
     .stock-editor-bar {
       background: var(--surface); border: 1.5px solid var(--warning);
       border-radius: var(--radius); padding: 12px 16px;
       display: flex; align-items: center; justify-content: space-between;
       gap: 12px; flex-shrink: 0; box-shadow: var(--shadow); flex-wrap: wrap;
     }
-    .editor-fields { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .editor-fields { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
     .editor-field { display: flex; align-items: center; gap: 6px; }
-    .editor-field label { font-size: 0.78rem; font-weight: 600; color: var(--muted); white-space: nowrap; }
-    .editor-input { width: 88px; font: inherit; font-size: 0.88rem; font-weight: 700; padding: 6px 8px; border-radius: 6px; border: 1px solid var(--border-strong); text-align: right; }
-    .editor-url-input { width: 190px; font: inherit; font-size: 0.8rem; padding: 6px 8px; border-radius: 6px; border: 1px solid var(--border-strong); }
+    .editor-field label { font-size: 0.8rem; font-weight: 600; color: var(--muted); white-space: nowrap; }
+    .editor-input { width: 96px; font: inherit; font-size: 0.9rem; font-weight: 700; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-strong); text-align: right; }
 
     /* 3. Right Summary Sidebar */
     .right-summary {
@@ -462,7 +458,7 @@
           <h1 class="stage-title" id="stageHeading">เลือกหมวดหมู่สินค้า (คลิกที่รูปเพื่อดูรายการสินค้า)</h1>
         </div>
         <span style="font-size: 0.8rem; color: var(--muted);" id="stageSubHint">
-          รองรับรูปสินค้าจาก Google Drive (หากไม่มีรูปจะแสดงไอคอนหมวดหมู่อัตโนมัติ)
+          หน้าต่างหลักคงที่ (หากสินค้าเยอะสามารถเลื่อนเฉพาะในกรอบสินค้าได้)
         </span>
       </div>
 
@@ -479,16 +475,12 @@
 
           <div class="editor-fields">
             <div class="editor-field">
-              <label for="addStockQtyInput">เพิ่มสต็อก (+):</label>
+              <label for="addStockQtyInput">เพิ่มจำนวนสต็อก (+):</label>
               <input type="number" id="addStockQtyInput" class="editor-input" min="0" value="0">
             </div>
             <div class="editor-field">
-              <label for="newPriceInput">ราคาใหม่ (฿):</label>
+              <label for="newPriceInput">ราคาขายใหม่ (฿):</label>
               <input type="number" id="newPriceInput" class="editor-input" min="1" value="0">
-            </div>
-            <div class="editor-field">
-              <label for="newImageUrlInput">ลิงก์รูป Google Drive:</label>
-              <input type="text" id="newImageUrlInput" class="editor-url-input" placeholder="วางลิงก์รูป Drive (เว้นว่างใช้ไอคอน)">
             </div>
             <button type="submit" class="btn btn-warning" style="padding: 8px 14px; font-size:0.85rem;">
               + เพิ่มเข้าคิวปรับปรุง
@@ -568,10 +560,10 @@
     </div>
   </div>
 
-  <!-- Google Sheets & Drive Image Auto-Match Modal -->
+  <!-- Google Sheets Connection Modal -->
   <div class="modal-backdrop" id="cloudSetupModal" role="dialog" aria-modal="true">
     <div class="modal-card">
-      <h3 class="modal-title">🔐 เชื่อมต่อ Google Sheets &amp; ซิงค์รูปภาพจาก Google Drive</h3>
+      <h3 class="modal-title">🔐 เชื่อมต่อฐานข้อมูล Google Sheets</h3>
       <div id="cloudStatusBanner" style="font-size:0.8rem; color:var(--danger); margin-bottom:10px;" hidden></div>
       <form id="cloudSetupForm">
         <div style="margin-bottom:10px;">
@@ -584,7 +576,6 @@
         </div>
         <div class="modal-actions">
           <button type="button" id="closeCloudModalBtn" class="btn btn-secondary">ปิด</button>
-          <button type="button" id="runDriveMatchBtn" class="btn btn-warning" title="สั่งจับคู่ไฟล์รูปในโฟลเดอร์ Google Drive เข้ากับรหัส SKU อัตโนมัติ">🖼️ จับคู่รูป Drive กับ SKU</button>
           <button type="submit" id="saveCloudBtn" class="btn btn-primary">💾 เชื่อมต่อและดึงข้อมูล</button>
         </div>
       </form>
@@ -640,9 +631,6 @@
     let activeSecretPin = '';
     let isCloudConnected = false;
 
-    // =========================================================================
-    // ฟังก์ชันแปลงลิงก์แชร์จาก Google Drive ให้กลายเป็นลิงก์แสดงผลรูปภาพโดยตรง
-    // =========================================================================
     function resolveProductImageUrl(rawUrl) {
       if (!rawUrl || typeof rawUrl !== 'string') return '';
       const trimmed = rawUrl.trim();
@@ -657,7 +645,6 @@
       return trimmed;
     }
 
-    // ดึงป้ายเบอร์/ขนาดจากชื่อสินค้าอัตโนมัติ
     function extractSpecTag(name) {
       const m = String(name || '').match(/(เบอร์\s*[\d.]+|\d+\s*(?:lb|ปอนด์|หุน|นิ้ว|มิล|g|ml|กก\.))/i);
       return m ? m[1] : '';
@@ -686,7 +673,7 @@
         if (!r[0]) return;
         const sku = String(r[0]).trim();
         const name = String(r[1] || sku).trim();
-        const rawColC = String(r[2] || '').trim(); // คอลัมน์ C: Image_URL
+        const rawColC = String(r[2] || '').trim(); // อ่านลิงก์รูปจากคอลัมน์ C ที่สคริปต์หลังบ้านใส่ไว้
         const catName = String(r[3] || 'สินค้าทั่วไป').trim();
         const unit = String(r[4] || 'ชิ้น').trim();
         const price = Number(r[6]) || 0;
@@ -801,7 +788,6 @@
         const isLow = p.stock <= 5;
         const resolvedImg = resolveProductImageUrl(p.imageUrl);
 
-        // หากมีลิงก์รูปจาก Google Drive ให้แสดงรูปภาพ แต่ถ้าไม่มีรูป (หรือโหลดไม่ติด) ให้แสดงไอคอนหมวดหมู่อัตโนมัติ
         const centerVisualHtml = resolvedImg
           ? `<img src="${resolvedImg}" alt="${p.name}" class="prod-real-img" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
              <div class="prod-icon-fallback" style="display:none;">${cat ? cat.svg : ''}</div>`
@@ -846,7 +832,6 @@
         const existingQueue = stockUpdateQueue.find(q => q.sku === sku);
         document.getElementById('addStockQtyInput').value = existingQueue ? existingQueue.addQty : 10;
         document.getElementById('newPriceInput').value = existingQueue ? existingQueue.newPrice : product.price;
-        document.getElementById('newImageUrlInput').value = existingQueue ? (existingQueue.imageUrl || '') : (product.imageUrl || '');
         document.getElementById('addStockQtyInput').focus();
       }
     }
@@ -871,18 +856,15 @@
 
       const addQty = Math.max(0, Number(document.getElementById('addStockQtyInput').value) || 0);
       const newPrice = Math.max(1, Number(document.getElementById('newPriceInput').value) || product.price);
-      const rawImgUrl = document.getElementById('newImageUrlInput').value.trim();
-      const imageUrl = resolveProductImageUrl(rawImgUrl);
 
-      if (addQty === 0 && newPrice === product.price && imageUrl === (product.imageUrl || '')) return;
+      if (addQty === 0 && newPrice === product.price) return;
 
       const existing = stockUpdateQueue.find(q => q.sku === selectedEditSku);
       if (existing) {
         existing.addQty = addQty;
         existing.newPrice = newPrice;
-        existing.imageUrl = imageUrl;
       } else {
-        stockUpdateQueue.push({ sku: product.sku, addQty, newPrice, imageUrl });
+        stockUpdateQueue.push({ sku: product.sku, addQty, newPrice });
       }
       renderRightSummary();
     });
@@ -1036,7 +1018,7 @@
       pill.className = tab === 'SALE' ? 'mode-pill' : 'mode-pill stock-mode';
       pill.textContent = tab === 'SALE'
         ? '🛒 โหมดขายหน้าร้าน: กดรูปหมวดหมู่เพื่อเลือกสินค้าลงบิล'
-        : '📦 โหมดจัดการคลัง: เลือกสินค้าเพื่อเพิ่มสต็อก ปรับราคา หรือใส่ลิงก์รูป Drive';
+        : '📦 โหมดจัดการคลัง: เลือกสินค้าเพื่อเพิ่มจำนวนสต็อกและปรับปรุงราคา';
       if (tab === 'SALE') document.getElementById('stockEditForm').hidden = true;
       if (selectedCategoryId) renderProductGrid(); else closeCategoryToHome();
       renderRightSummary();
@@ -1165,7 +1147,6 @@
           if (p) {
             p.stock += q.addQty;
             p.price = q.newPrice;
-            if (q.imageUrl) p.imageUrl = q.imageUrl;
             if (q.addQty > 0) {
               txsForSheet.push({ id: `TX-${Date.now()}-${p.sku}`, time: timeStr, type: 'IN', sku: p.sku, name: p.name, qty: q.addQty, unitPrice: p.price, actor: 'เพิ่มสต็อกจากหน้าเว็บ' });
             }
@@ -1211,7 +1192,7 @@
     document.getElementById('navStockBtn').addEventListener('click', () => switchWorkspaceTab('STOCK'));
     document.getElementById('backToCategoriesBtn').addEventListener('click', closeCategoryToHome);
 
-    // Cloud Setup & Auto-Match Drive Images
+    // Google Sheets Connection Modal
     document.getElementById('openCloudModalBtn').addEventListener('click', () => document.getElementById('cloudSetupModal').classList.add('open'));
     document.getElementById('closeCloudModalBtn').addEventListener('click', () => document.getElementById('cloudSetupModal').classList.remove('open'));
 
@@ -1224,29 +1205,6 @@
         localStorage.setItem('VISUAL_POS_PIN', activeSecretPin);
       } catch (err) {}
       syncWithGoogleSheets();
-    });
-
-    document.getElementById('runDriveMatchBtn').addEventListener('click', async () => {
-      activeScriptUrl = document.getElementById('gasUrlInput').value.trim();
-      activeSecretPin = document.getElementById('gasPinInput').value.trim();
-      const banner = document.getElementById('cloudStatusBanner');
-      if (!activeScriptUrl || !activeSecretPin) {
-        banner.hidden = false;
-        banner.textContent = '⚠️ กรุณากรอก URL และรหัส PIN ก่อนสั่งจับคู่รูปภาพ';
-        return;
-      }
-      try {
-        const btn = document.getElementById('runDriveMatchBtn');
-        btn.textContent = '⏳ กำลังจับคู่รูป Drive...';
-        const res = await callSheetsApi('AUTO_MATCH_DRIVE_IMAGES');
-        if (Array.isArray(res.products)) applyProductsFromSheetRows(res.products);
-        if (selectedCategoryId) renderProductGrid();
-        btn.textContent = '✓ จับคู่รูปสำเร็จ!';
-        setTimeout(() => { btn.textContent = '🖼️ จับคู่รูป Drive กับ SKU'; }, 2000);
-      } catch (err) {
-        banner.hidden = false;
-        banner.textContent = '❌ ' + err.message;
-      }
     });
 
     try {
