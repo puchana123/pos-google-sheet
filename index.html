@@ -861,4 +861,1695 @@
     .db-status-msg.error { background: var(--danger-soft); color: var(--danger); border-color: #fecaca; }
     .db-status-msg.success { background: var(--success-soft); color: var(--success); border-color: #bbf7d0; }
 
-    .r
+    .radio-card { display: flex; align-items: flex-start; gap: 8px; padding: 9px 12px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--surface-subtle); cursor: pointer; font-size: 0.8rem; margin-bottom: 6px; }
+    .code-snippet-box { background: #0f172a; color: #e2e8f0; padding: 12px; border-radius: var(--radius-sm); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.72rem; overflow-x: auto; max-height: 200px; margin-top: 8px; white-space: pre; user-select: text; }
+
+    @media print {
+      @page { margin: 8mm; }
+      html, body { height: auto !important; overflow: visible !important; background: #ffffff !important; }
+      .app-shell, #confirmModal, #dbConnectModal, .no-print { display: none !important; }
+      #receiptPrintModal { position: static !important; display: block !important; background: transparent !important; padding: 0 !important; }
+      .receipt-modal-card { max-width: 100% !important; width: 100% !important; max-height: none !important; overflow: visible !important; box-shadow: none !important; border: none !important; padding: 0 !important; }
+      .receipt-paper { background: transparent !important; border: none !important; padding: 0 !important; margin: 0 !important; max-height: none !important; overflow: visible !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-shell">
+    <!-- 1. Left Sidebar Rail -->
+    <aside class="left-rail" aria-label="เมนูหลักด้านซ้าย">
+      <div class="rail-brand">
+        <div class="rail-logo">POS</div>
+        <span class="rail-brand-text">Visual POS</span>
+      </div>
+
+      <nav class="rail-nav" role="tablist">
+        <button type="button" class="rail-tab-btn active" id="navSaleBtn" role="tab" aria-selected="true">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/>
+            <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>
+          </svg>
+          <span>ขายสินค้า<br>(ออกบิล)</span>
+        </button>
+
+        <button type="button" class="rail-tab-btn" id="navStockBtn" role="tab" aria-selected="false">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>
+          </svg>
+          <span>เพิ่มสต็อก /<br>✂️ แกะแพ็ค</span>
+        </button>
+
+        <button type="button" class="rail-tab-btn" id="openDbModalBtn" title="ตั้งค่าเชื่อมต่อฐานข้อมูล Google Sheets">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <ellipse cx="12" cy="5" rx="9" ry="3"/>
+            <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+            <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+          </svg>
+          <span>เชื่อม DB<br>(Sheets)</span>
+        </button>
+      </nav>
+
+      <div class="rail-footer">
+        <button type="button" id="quickSyncRailBtn" class="rail-tab-btn" hidden style="padding:6px 4px; margin-bottom:6px; background:#1e293b; color:#38bdf8; font-size:0.65rem;" title="ดึงข้อมูลล่าสุดจาก Google Sheets">
+          🔄 ซิงค์ DB
+        </button>
+        <span class="sample-tag" id="dbStatusRailBadge">Sample<br>Data</span>
+      </div>
+    </aside>
+
+    <!-- 2. Center Main Workspace -->
+    <main class="center-stage">
+      <!-- Top Real-Time Search Bar -->
+      <header class="top-bar">
+        <div class="search-wrapper">
+          <div class="search-input-box">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input
+              type="text"
+              id="realtimeSearchInput"
+              class="search-input"
+              placeholder="พิมพ์ค้นหาชื่อสินค้า เบอร์ หรือรหัส SKU (เช่น HK-DMN-BLK-05)..."
+              autocomplete="off"
+            >
+            <button type="button" id="clearSearchBtn" class="search-clear-btn" hidden title="ล้างคำค้นหา">✕</button>
+          </div>
+          <!-- Real-Time Floating List -->
+          <div id="realtimeSearchDropdown" class="search-dropdown" hidden></div>
+        </div>
+
+        <div id="currentModeIndicator" class="mode-pill">
+          🛒 โหมดขายหน้าร้าน: หมวดหมู่ → การ์ดรหัสหลัก (2 ส่วนแรก) → การ์ดเบอร์ย่อย
+        </div>
+      </header>
+
+      <!-- Breadcrumb / Stage Navigation Header -->
+      <div class="stage-header">
+        <div class="stage-title-group">
+          <button type="button" id="backToCategoriesBtn" class="back-cat-btn" hidden>
+            ← หมวดหมู่ทั้งหมด
+          </button>
+          <button type="button" id="backToPrefixGroupsBtn" class="back-cat-btn" hidden>
+            ← กลับไปเลือกรุ่นสินค้า
+          </button>
+          <h1 class="stage-title" id="stageHeading">1. เลือกหมวดหมู่สินค้า</h1>
+        </div>
+        <span style="font-size: 0.78rem; color: var(--muted);" id="stageSubHint">
+          รวมรหัส SKU 2 ส่วนแรกเป็น 1 การ์ดรุ่น ก่อนกดเข้าไปเลือกเบอร์ย่อย
+        </span>
+      </div>
+
+      <!-- Level 1: Visual Category Cards Grid -->
+      <section id="categoryGridView" class="category-grid" aria-label="หมวดหมู่สินค้า"></section>
+
+      <!-- Level 2 & Level 3: Prefix Group Cards OR Sub-item Cards -->
+      <section id="productGridView" class="product-grid-stage" hidden aria-label="รายการสินค้า">
+        <div id="productGridContainer" class="product-grid"></div>
+
+        <!-- Inline Stock / Price / Unpack Bar (Only shown in Tab 2 when a sub-item card is clicked) -->
+        <form id="stockEditForm" class="stock-editor-bar" hidden>
+          <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+            <div class="editor-action-tabs" id="editorActionTabs">
+              <button type="button" class="editor-tab-btn active" id="modeRestockTabBtn">📦 เพิ่มสต็อก / ปรับราคา</button>
+              <button type="button" class="editor-tab-btn" id="modeUnpackTabBtn">✂️ แกะแพ็คใหญ่เป็นชิ้นเล็ก</button>
+            </div>
+            <div>
+              <div style="font-size:0.72rem; color:var(--warning); font-weight:700;" id="editingModeSubLabel">กำลังแก้ไขรายการย่อย:</div>
+              <div style="font-size:0.9rem; font-weight:700;" id="editingProductLabel">-</div>
+            </div>
+          </div>
+
+          <!-- Fields for Normal Stock & Price Adjustment -->
+          <div class="editor-fields" id="restockFieldsGroup">
+            <div class="editor-field">
+              <label for="addStockQtyInput">เพิ่มสต็อก (+):</label>
+              <input type="number" id="addStockQtyInput" class="editor-input" min="0" value="0">
+            </div>
+            <div class="editor-field">
+              <label for="newPriceInput">ราคาขายใหม่ (฿):</label>
+              <input type="number" id="newPriceInput" class="editor-input" min="1" value="0">
+            </div>
+            <button type="submit" class="btn btn-warning" style="padding: 7px 14px; font-size:0.84rem;">
+              + เพิ่มเข้าคิวปรับปรุง
+            </button>
+          </div>
+
+          <!-- Fields for Unpacking Big Pack -> Small Pieces -->
+          <div class="editor-fields" id="unpackFieldsGroup" hidden>
+            <div class="editor-field">
+              <label for="unpackPackCountInput">แกะแพ็คใหญ่ (-):</label>
+              <input type="number" id="unpackPackCountInput" class="editor-input" min="1" value="1">
+            </div>
+            <div class="editor-field">
+              <label for="unpackRatioInput">ได้ชิ้นเล็ก/แพ็ค (×):</label>
+              <input type="number" id="unpackRatioInput" class="editor-input" min="1" value="10">
+            </div>
+            <span style="font-size:0.82rem; font-weight:700; color:var(--brand);" id="unpackResultPreview">= ได้ +10 กล่อง</span>
+            <button type="submit" class="btn btn-warning" style="padding: 7px 14px; font-size:0.84rem;">
+              ✂️ เพิ่มคิวแกะแพ็ค
+            </button>
+          </div>
+        </form>
+      </section>
+    </main>
+
+    <!-- 3. Right Summary Panel (Always visible on the right) -->
+    <aside class="right-summary" aria-label="สรุปรายการด้านขวา">
+      <div class="summary-header">
+        <h2 class="summary-title" id="summaryPanelTitle">🧾 สรุปรายการบิลขาย</h2>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <button type="button" id="reopenLastReceiptBtn" class="btn btn-secondary" hidden style="padding:4px 8px; font-size:0.72rem;" title="ดูและพิมพ์บิลล่าสุด">
+            🖨️ บิลล่าสุด
+          </button>
+          <span class="summary-badge" id="summaryPanelBadge">BILL-001</span>
+        </div>
+      </div>
+
+      <div id="summaryItemsList" class="summary-list"></div>
+
+      <div class="summary-footer">
+        <div class="totals-box" id="summaryTotalsBox">
+          <div class="tot-row">
+            <span id="sumRow1Label">จำนวนรายการรวม</span>
+            <span id="sumRow1Value">0 ชิ้น</span>
+          </div>
+          <div class="tot-row grand">
+            <span id="sumRow2Label">ยอดชำระสุทธิ</span>
+            <span id="sumRow2Value">฿0</span>
+          </div>
+        </div>
+
+        <div class="action-stack">
+          <button type="button" id="primaryConfirmBtn" class="btn btn-primary">
+            ✓ ยืนยันออกบิลและพิมพ์ใบเสร็จ
+          </button>
+          <button type="button" id="clearSummaryBtn" class="btn btn-secondary" title="ล้างรายการ">
+            ล้าง
+          </button>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Step 1: Confirmation Modal -->
+  <div class="modal-backdrop" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="confirmModalTitle">
+    <div class="modal-card">
+      <h3 class="modal-title" id="confirmModalTitle">ยืนยันการทำรายการ</h3>
+      <p style="margin:0; font-size:0.85rem; color:var(--muted);" id="confirmModalSubtitle">
+        โปรดตรวจสอบความถูกต้องของรายการก่อนกดยืนยัน
+      </p>
+      <div class="modal-body" id="confirmModalBody"></div>
+      <div class="modal-actions">
+        <button type="button" id="cancelModalBtn" class="btn btn-secondary">ยกเลิก / กลับไปแก้ไข</button>
+        <button type="button" id="commitModalBtn" class="btn btn-primary">✓ ยืนยันทำรายการทันที</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 2: Printable Receipt Modal -->
+  <div class="modal-backdrop" id="receiptPrintModal" role="dialog" aria-modal="true" aria-labelledby="receiptModalTitle">
+    <div class="modal-card receipt-modal-card">
+      <div class="no-print" style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+        <h3 class="modal-title" id="receiptModalTitle" style="margin:0;">✅ ออกบิลและตัดสต็อกสำเร็จ (พร้อมพิมพ์ใบเสร็จ)</h3>
+        <span class="summary-badge" id="receiptBillBadge">BILL-001</span>
+      </div>
+
+      <div class="print-format-bar no-print">
+        <span style="font-size:0.8rem; font-weight:700;">เลือกรูปแบบกระดาษสำหรับปริ้นเตอร์:</span>
+        <div class="format-options" role="group" aria-label="รูปแบบกระดาษ">
+          <button type="button" class="format-btn" data-print-format="a5">📄 กระดาษ A5</button>
+          <button type="button" class="format-btn active" data-print-format="a4-dup">📑 A4 (ต้นฉบับ+สำเนา)</button>
+          <button type="button" class="format-btn" data-print-format="80mm">🧾 สลิป 80mm</button>
+        </div>
+      </div>
+
+      <div id="receiptPaperContent" class="receipt-paper"></div>
+
+      <div class="modal-actions no-print">
+        <button type="button" id="copyReceiptTextBtn" class="btn btn-secondary">คัดลอกข้อความบิล</button>
+        <button type="button" id="triggerPrintBtn" class="btn btn-secondary">🖨️ สั่งพิมพ์ใบเสร็จ (Print)</button>
+        <button type="button" id="closeReceiptModalBtn" class="btn btn-primary">ปิดหน้าต่าง</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Database Connection & Code.gs Modal -->
+  <div class="modal-backdrop" id="dbConnectModal" role="dialog" aria-modal="true" aria-labelledby="dbModalTitle">
+    <div class="modal-card receipt-modal-card">
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px;">
+        <h3 class="modal-title" id="dbModalTitle" style="margin:0;">🔐 ตั้งค่าเชื่อมต่อฐานข้อมูล Google Sheets (Database)</h3>
+        <span class="summary-badge" id="dbModalStatusBadge">โหมดข้อมูลตัวอย่าง</span>
+      </div>
+      <p style="margin:0 0 12px; font-size:0.8rem; color:var(--muted);">
+        กรอก Web App URL และรหัส PIN ของร้านเพื่อดึงรายการสินค้าจริง (รวมถึงรูปภาพจากคอลัมน์ C) และบันทึกการตัดสต็อก/แกะแพ็คลง Google Sheets อัตโนมัติ
+      </p>
+
+      <div id="dbModalAlert" class="db-status-msg" hidden></div>
+
+      <form id="dbConnectForm">
+        <div style="margin-bottom:10px;">
+          <label style="display:block; font-size:0.78rem; font-weight:700; color:var(--muted); margin-bottom:4px;" for="gasUrlInput">
+            1. ลิงก์ Google Apps Script Web App URL (ลงท้ายด้วย /exec)
+          </label>
+          <input
+            type="url"
+            id="gasUrlInput"
+            class="search-input"
+            style="border:1px solid var(--border-strong); border-radius:8px; padding:9px 12px; background:var(--surface);"
+            placeholder="วางลิงก์ Web App URL ที่ลงท้ายด้วย /exec ของคุณที่นี่"
+            autocomplete="off"
+          >
+        </div>
+
+        <div style="margin-bottom:10px;">
+          <label style="display:block; font-size:0.78rem; font-weight:700; color:var(--muted); margin-bottom:4px;" for="gasPinInput">
+            2. รหัสผ่านส่วนตัว (SECRET_KEY ใน Script Properties)
+          </label>
+          <input
+            type="password"
+            id="gasPinInput"
+            class="search-input"
+            style="border:1px solid var(--border-strong); border-radius:8px; padding:9px 12px; background:var(--surface);"
+            placeholder="เช่น POS-2026-SECRET"
+          >
+        </div>
+
+        <div style="margin:10px 0;">
+          <label class="radio-card">
+            <input type="radio" name="dbPersistMode" value="REMEMBER" checked>
+            <div>
+              <strong>จำการเชื่อมต่อไว้ในเครื่องนี้อัตโนมัติ (Remember Device)</strong>
+              <div style="color:var(--muted); font-size:0.74rem;">เปิดใช้งานครั้งถัดไป ระบบจะซิงค์ข้อมูลจาก Google Sheets ทันทีโดยไม่ต้องกรอกรหัสใหม่</div>
+            </div>
+          </label>
+          <label class="radio-card">
+            <input type="radio" name="dbPersistMode" value="SESSION">
+            <div>
+              <strong>ถามรหัส PIN ทุกครั้งที่เปิดหน้าเว็บใหม่ (Session Lock)</strong>
+              <div style="color:var(--muted); font-size:0.74rem;">จำเฉพาะ URL ไว้ แต่ต้องใส่รหัส PIN ใหม่เมื่อปิดเบราว์เซอร์แล้วเปิดใหม่</div>
+            </div>
+          </label>
+        </div>
+
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;">
+          <button type="submit" id="dbConnectSubmitBtn" class="btn btn-primary" style="flex:1;">
+            ☁️ เชื่อมต่อและดึงข้อมูลจาก Google Sheets
+          </button>
+          <button type="button" id="clearDbSavedBtn" class="btn btn-secondary" style="color:var(--danger);">
+            ล้างค่าที่จำไว้
+          </button>
+          <button type="button" id="closeDbModalBtn" class="btn btn-secondary">
+            ปิดหน้าต่าง
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const categories = [
+      {
+        id: 'CAT-HOOK',
+        name: 'ตัวเบ็ดตกปลา',
+        desc: 'รวมรุ่นตาม SKU 2 ส่วนแรก (เช่น HK-DMN, HK-BLK)',
+        bg: '#e0f2fe',
+        color: '#0284c7',
+        svg: `<svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3v12a4 4 0 0 1-8 0V9"/><polyline points="11 12 8 9 5 12"/><circle cx="16" cy="3" r="1"/></svg>`
+      },
+      {
+        id: 'CAT-LINE',
+        name: 'สายเอ็น & สายพีอี',
+        desc: 'รวมรุ่นตาม SKU 2 ส่วนแรก (เช่น LN-LD, PE-X8)',
+        bg: '#dcfce7',
+        color: '#16a34a',
+        svg: `<svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="3" x2="12" y2="8"/><line x1="12" y1="16" x2="12" y2="21"/></svg>`
+      },
+      {
+        id: 'CAT-FLOAT',
+        name: 'ทุ่น & ตะกั่วถ่วง',
+        desc: 'ทุ่นชิงหลิว ทุ่นลอย ตะกั่วฟิวส์',
+        bg: '#fef3c7',
+        color: '#d97706',
+        svg: `<svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 12c0 3.5-2.2 6-5 6s-5-2.5-5-6 2.2-6 5-6 5 2.5 5 6z"/></svg>`
+      },
+      {
+        id: 'CAT-BAIT',
+        name: 'เหยื่อตกปลา & หัวเชื้อ',
+        desc: 'รำบ่ม เหยื่อผง หัวเชื้อกลิ่นต่างๆ',
+        bg: '#fce7f3',
+        color: '#db2777',
+        svg: `<svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#db2777" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12l2 6v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8z"/><line x1="4" y1="8" x2="20" y2="8"/></svg>`
+      },
+      {
+        id: 'CAT-COFFEE',
+        name: 'เมล็ดกาแฟ & เครื่องดื่ม',
+        desc: 'กาแฟคั่วบด อาราบิก้า น้ำเชื่อม',
+        bg: '#ede9fe',
+        color: '#7c3aed',
+        svg: `<svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/></svg>`
+      },
+      {
+        id: 'CAT-EQUIP',
+        name: 'อุปกรณ์เสริม & จิปาถะ',
+        desc: 'แก้วดริป กระดาษกรอง กิ๊บลูกหมุน',
+        bg: '#ffedd5',
+        color: '#ea580c',
+        svg: `<svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>`
+      }
+    ];
+
+    // Sample Products formatted with multi-part SKUs (e.g., HK-DMN-BLK-01, HK-DMN-GLD-05)
+    // so you can test the 2-part SKU Prefix Card grouping -> Remainder Sub-item Cards immediately.
+    const products = [
+      // Group 1: HK-DMN (เบ็ดไดม่อน)
+      { sku: 'HK-DMN-BLK-01', catId: 'CAT-HOOK', name: 'เบ็ดไดม่อน สีดำ เบอร์ 1', price: 45, stock: 20, unit: 'กล่อง' },
+      { sku: 'HK-DMN-BLK-01-PK', catId: 'CAT-HOOK', name: 'เบ็ดไดม่อน สีดำ เบอร์ 1 (ยกมัด 10 กล่อง)', price: 420, stock: 5, unit: 'มัด', packSize: 10 },
+      { sku: 'HK-DMN-BLK-03', catId: 'CAT-HOOK', name: 'เบ็ดไดม่อน สีดำ เบอร์ 3', price: 45, stock: 24, unit: 'กล่อง' },
+      { sku: 'HK-DMN-BLK-03-PK', catId: 'CAT-HOOK', name: 'เบ็ดไดม่อน สีดำ เบอร์ 3 (ยกมัด 10 กล่อง)', price: 420, stock: 6, unit: 'มัด', packSize: 10 },
+      { sku: 'HK-DMN-BLK-05', catId: 'CAT-HOOK', name: 'เบ็ดไดม่อน สีดำ เบอร์ 5', price: 45, stock: 18, unit: 'กล่อง' },
+      { sku: 'HK-DMN-BLK-05-PK', catId: 'CAT-HOOK', name: 'เบ็ดไดม่อน สีดำ เบอร์ 5 (ยกมัด 10 กล่อง)', price: 420, stock: 7, unit: 'มัด', packSize: 10 },
+      { sku: 'HK-DMN-GLD-05', catId: 'CAT-HOOK', name: 'เบ็ดไดม่อน สีทอง เบอร์ 5', price: 50, stock: 15, unit: 'กล่อง' },
+      { sku: 'HK-DMN-GLD-07', catId: 'CAT-HOOK', name: 'เบ็ดไดม่อน สีทอง เบอร์ 7', price: 55, stock: 12, unit: 'กล่อง' },
+
+      // Group 2: HK-BLK (เบ็ดดำมาตรฐาน)
+      { sku: 'HK-BLK-STD-04', catId: 'CAT-HOOK', name: 'เบ็ดดำมาตรฐาน เบอร์ 4', price: 35, stock: 30, unit: 'กล่อง' },
+      { sku: 'HK-BLK-STD-04-PK', catId: 'CAT-HOOK', name: 'เบ็ดดำมาตรฐาน เบอร์ 4 (ยกมัด 10 กล่อง)', price: 320, stock: 5, unit: 'มัด', packSize: 10 },
+      { sku: 'HK-BLK-STD-05', catId: 'CAT-HOOK', name: 'เบ็ดดำมาตรฐาน เบอร์ 5', price: 35, stock: 22, unit: 'กล่อง' },
+      { sku: 'HK-BLK-STD-05-PK', catId: 'CAT-HOOK', name: 'เบ็ดดำมาตรฐาน เบอร์ 5 (ยกมัด 10 กล่อง)', price: 320, stock: 8, unit: 'มัด', packSize: 10 },
+      { sku: 'HK-BLK-STD-06', catId: 'CAT-HOOK', name: 'เบ็ดดำมาตรฐาน เบอร์ 6', price: 40, stock: 12, unit: 'กล่อง' },
+
+      // Group 3: LN-LD (สายเอ็นโหลด)
+      { sku: 'LN-LD-CLR-10', catId: 'CAT-LINE', name: 'สายเอ็นโหลด สีใส 10 ปอนด์', price: 120, stock: 14, unit: 'ม้วน' },
+      { sku: 'LN-LD-CLR-10-PK', catId: 'CAT-LINE', name: 'สายเอ็นโหลด สีใส 10 ปอนด์ (ยกแพ็ค 6 ม้วน)', price: 660, stock: 4, unit: 'แพ็ค', packSize: 6 },
+      { sku: 'LN-LD-CLR-15', catId: 'CAT-LINE', name: 'สายเอ็นโหลด สีใส 15 ปอนด์', price: 130, stock: 10, unit: 'ม้วน' },
+      { sku: 'LN-LD-CLR-20', catId: 'CAT-LINE', name: 'สายเอ็นโหลด สีใส 20 ปอนด์', price: 140, stock: 8, unit: 'ม้วน' },
+
+      // Group 4: PE-X8 (สายถัก PE X8)
+      { sku: 'PE-X8-GRN-20', catId: 'CAT-LINE', name: 'สายถัก PE ถัก 8 สีเขียว เบอร์ 2.0', price: 280, stock: 9, unit: 'ม้วน' },
+      { sku: 'PE-X8-GRN-30', catId: 'CAT-LINE', name: 'สายถัก PE ถัก 8 สีเขียว เบอร์ 3.0', price: 290, stock: 7, unit: 'ม้วน' }
+    ];
+
+    // Navigation & State
+    let activeTab = 'SALE'; // 'SALE' | 'STOCK'
+    let selectedCategoryId = null;     // Level 1: Category ID
+    let selectedSkuPrefix = null;      // Level 2: First 2 parts of SKU (e.g., "HK-DMN")
+    let selectedEditSku = null;        // Level 3: Selected item in Stock Mode
+    let editorSubMode = 'RESTOCK';     // 'RESTOCK' | 'UNPACK'
+    let billCounter = 1;
+    let lastCompletedBill = null;
+    let selectedPrintFormat = 'a4-dup';
+
+    // Per-card unit toggle: key = baseSku (without -PK), value = 'PIECE' (default) | 'PACK'
+    const cardUnitSelection = {};
+
+    let saleCart = [];
+    let stockUpdateQueue = [];
+
+    // Google Sheets Database Sync State
+    let activeScriptUrl = '';
+    let activeSecretPin = '';
+    let isCloudConnected = false;
+
+    const palettePool = [
+      { bg: '#e0f2fe', color: '#0284c7', svg: `<svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3v12a4 4 0 0 1-8 0V9"/><polyline points="11 12 8 9 5 12"/><circle cx="16" cy="3" r="1"/></svg>` },
+      { bg: '#dcfce7', color: '#16a34a', svg: `<svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="3" x2="12" y2="8"/><line x1="12" y1="16" x2="12" y2="21"/></svg>` },
+      { bg: '#fef3c7', color: '#d97706', svg: `<svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 12c0 3.5-2.2 6-5 6s-5-2.5-5-6 2.2-6 5-6 5 2.5 5 6z"/></svg>` },
+      { bg: '#fce7f3', color: '#db2777', svg: `<svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#db2777" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12l2 6v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8z"/><line x1="4" y1="8" x2="20" y2="8"/></svg>` },
+      { bg: '#ede9fe', color: '#7c3aed', svg: `<svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/></svg>` },
+      { bg: '#ffedd5', color: '#ea580c', svg: `<svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>` }
+    ];
+
+    // =========================================================================
+    // SKU Parsing Helpers:
+    // - Base SKU (strip -PK): "HK-DMN-BLK-05-PK" -> "HK-DMN-BLK-05"
+    // - First 2 Parts (Main Group): "HK-DMN-BLK-05" -> "HK-DMN"
+    // - Remainder Parts (Sub-item label): "HK-DMN-BLK-05" -> "BLK-05"
+    // =========================================================================
+    function isPackSku(sku) {
+      return /-PK$/i.test(String(sku || '').trim());
+    }
+
+    function getBaseSku(sku) {
+      return String(sku || '').trim().replace(/-PK$/i, '');
+    }
+
+    function getSkuPrefix2(sku) {
+      const base = getBaseSku(sku);
+      const parts = base.split('-').filter(Boolean);
+      if (parts.length >= 2) {
+        return `${parts[0]}-${parts[1]}`.toUpperCase();
+      }
+      return base.toUpperCase();
+    }
+
+    function getSkuRemainder(sku) {
+      const base = getBaseSku(sku);
+      const parts = base.split('-').filter(Boolean);
+      if (parts.length > 2) {
+        return parts.slice(2).join('-');
+      }
+      return parts[parts.length - 1] || base;
+    }
+
+    function cleanGroupDisplayName(sampleName, prefix2) {
+      if (!sampleName) return prefix2;
+      // Strip trailing size/number details to get a clean series name for the parent card
+      const cleaned = String(sampleName)
+        .replace(/\s*\(.*?\)\s*/g, '')
+        .replace(/\s*(เบอร์|ขนาด|ไซส์)\s*[\w.]+.*$/i, '')
+        .trim();
+      return cleaned || sampleName;
+    }
+
+    function resolveProductImageUrl(rawUrl) {
+      if (!rawUrl || !String(rawUrl).trim()) return '';
+      const url = String(rawUrl).trim();
+      const driveMatch = url.match(/[-\w]{25,}/);
+      if (url.includes('drive.google.com') && driveMatch) {
+        return `https://drive.google.com/thumbnail?id=${driveMatch[0]}&sz=w400`;
+      }
+      if (/^https?:\/\//i.test(url)) return url;
+      return '';
+    }
+
+    function extractPackSizeFromName(nameStr) {
+      const m = String(nameStr || '').match(/(\d+)\s*(?:กล่อง|ซอง|ม้วน|ถุง|ขวด|ชิ้น|ดอก|อัน|ใบ)/);
+      return m ? Math.max(1, parseInt(m[1], 10)) : 10;
+    }
+
+    // Group products inside a category by the first 2 parts of SKU (Level 2 Parent Cards)
+    function getPrefixGroupsForCategory(catId) {
+      const catProducts = products.filter(p => p.catId === catId);
+      const groupMap = new Map();
+
+      catProducts.forEach(p => {
+        const prefix = getSkuPrefix2(p.sku);
+        const base = getBaseSku(p.sku);
+        if (!groupMap.has(prefix)) {
+          groupMap.set(prefix, {
+            prefix,
+            catId,
+            title: cleanGroupDisplayName(p.name, prefix),
+            imageUrl: p.imageUrl || '',
+            baseSkus: new Set(),
+            totalPieceStock: 0,
+            totalPackStock: 0,
+            pieceUnit: p.unit || 'ชิ้น'
+          });
+        }
+        const g = groupMap.get(prefix);
+        g.baseSkus.add(base);
+        if (!g.imageUrl && p.imageUrl) g.imageUrl = p.imageUrl;
+        if (isPackSku(p.sku)) {
+          g.totalPackStock += p.stock;
+        } else {
+          g.totalPieceStock += p.stock;
+          g.pieceUnit = p.unit || g.pieceUnit;
+        }
+      });
+
+      return Array.from(groupMap.values());
+    }
+
+    // Get unified sub-item cards (each card combines Small Piece + Big Pack -PK) for a selected 2-part SKU prefix
+    function getUnifiedSubCardsForPrefix(catId, prefix2) {
+      const matching = products.filter(p => p.catId === catId && getSkuPrefix2(p.sku) === prefix2);
+      const baseMap = new Map();
+
+      matching.forEach(p => {
+        const base = getBaseSku(p.sku);
+        if (!baseMap.has(base)) {
+          baseMap.set(base, {
+            baseSku: base,
+            remainderCode: getSkuRemainder(base),
+            pieceProduct: null,
+            packProduct: null
+          });
+        }
+        const entry = baseMap.get(base);
+        if (isPackSku(p.sku)) {
+          entry.packProduct = p;
+        } else {
+          entry.pieceProduct = p;
+        }
+      });
+
+      return Array.from(baseMap.values());
+    }
+
+    // =========================================================================
+    // Navigation & Rendering (Level 1 -> Level 2 -> Level 3)
+    // =========================================================================
+    function renderCategoryGrid() {
+      const container = document.getElementById('categoryGridView');
+      container.innerHTML = categories.map(cat => {
+        const prefixGroups = getPrefixGroupsForCategory(cat.id);
+        return `
+          <div class="category-card" data-cat-id="${cat.id}">
+            <div class="cat-illust" style="background:${cat.bg}; color:${cat.color};">
+              ${cat.svg}
+            </div>
+            <div>
+              <h2 class="cat-name">${cat.name}</h2>
+              <p class="cat-meta">${prefixGroups.length} รุ่นหลัก (กดเพื่อเลือกรุ่นและเบอร์ย่อย)</p>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      container.querySelectorAll('[data-cat-id]').forEach(card => {
+        card.addEventListener('click', () => {
+          openCategoryLevel2(card.getAttribute('data-cat-id'));
+        });
+      });
+    }
+
+    // Level 1: Back to all categories
+    function closeCategoryToHome() {
+      selectedCategoryId = null;
+      selectedSkuPrefix = null;
+      selectedEditSku = null;
+      document.getElementById('categoryGridView').hidden = false;
+      document.getElementById('productGridView').hidden = true;
+      document.getElementById('backToCategoriesBtn').hidden = true;
+      document.getElementById('backToPrefixGroupsBtn').hidden = true;
+      document.getElementById('stockEditForm').hidden = true;
+      document.getElementById('stageHeading').textContent = '1. เลือกหมวดหมู่สินค้า';
+      document.getElementById('stageSubHint').textContent = 'รวมรหัส SKU 2 ส่วนแรกเป็น 1 การ์ดรุ่น ก่อนกดเข้าไปเลือกเบอร์ย่อย';
+    }
+
+    // Level 2: Show Parent Cards grouped by First 2 Parts of SKU (e.g., HK-DMN, HK-BLK)
+    function openCategoryLevel2(catId) {
+      selectedCategoryId = catId;
+      selectedSkuPrefix = null;
+      selectedEditSku = null;
+
+      const cat = categories.find(c => c.id === catId);
+      const groups = getPrefixGroupsForCategory(catId);
+
+      document.getElementById('categoryGridView').hidden = true;
+      document.getElementById('productGridView').hidden = false;
+      document.getElementById('backToCategoriesBtn').hidden = false;
+      document.getElementById('backToPrefixGroupsBtn').hidden = true;
+      document.getElementById('stockEditForm').hidden = true;
+
+      document.getElementById('stageHeading').textContent = cat
+        ? `2. หมวด ${cat.name} — เลือกรุ่นสินค้า (${groups.length} รุ่นหลัก)`
+        : '2. เลือกรุ่นสินค้า';
+      document.getElementById('stageSubHint').textContent = 'การ์ดนี้รวมสินค้าที่ใช้ SKU 2 ส่วนแรกเหมือนกันไว้ด้วยกัน คลิกที่การ์ดเพื่อดูแต่ละเบอร์ย่อย';
+
+      renderPrefixGroupGrid();
+    }
+
+    // Level 3: Show Sub-item Cards (Remainder of SKU, e.g., BLK-01, BLK-05) inside the chosen 2-part Prefix
+    function openPrefixGroupLevel3(prefix2) {
+      selectedSkuPrefix = prefix2;
+      selectedEditSku = null;
+      const cat = categories.find(c => c.id === selectedCategoryId);
+      const subCards = getUnifiedSubCardsForPrefix(selectedCategoryId, prefix2);
+
+      document.getElementById('backToCategoriesBtn').hidden = false;
+      document.getElementById('backToPrefixGroupsBtn').hidden = false;
+      document.getElementById('stockEditForm').hidden = true;
+
+      document.getElementById('stageHeading').textContent =
+        `3. รุ่น ${prefix2} (${subCards.length} เบอร์ย่อย)`;
+      document.getElementById('stageSubHint').textContent = activeTab === 'SALE'
+        ? 'แสดงส่วนที่เหลือของ SKU เป็นรายการย่อย (ค่าเริ่มต้นเป็นชิ้นเล็ก สามารถสลับเป็นแพ็คใหญ่ที่มุมซ้ายบนของการ์ด)'
+        : 'คลิกที่การ์ดเบอร์ย่อยเพื่อเพิ่มสต็อก ปรับราคา หรือแกะแพ็คใหญ่เป็นชิ้นเล็ก';
+
+      renderSubItemsGrid();
+    }
+
+    function renderPrefixGroupGrid() {
+      const cat = categories.find(c => c.id === selectedCategoryId);
+      const groups = getPrefixGroupsForCategory(selectedCategoryId);
+      const container = document.getElementById('productGridContainer');
+
+      container.innerHTML = groups.map(g => {
+        const variantCount = g.baseSkus.size;
+        const centerVisual = g.imageUrl
+          ? `<img src="${g.imageUrl}" alt="${g.title}" class="prod-real-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+             <div class="prod-icon-fallback" style="display:none;">${cat ? cat.svg : ''}</div>`
+          : `<div class="prod-icon-fallback">${cat ? cat.svg : ''}</div>`;
+
+        return `
+          <div class="product-card" data-prefix-group="${g.prefix}">
+            <span class="prefix-group-badge">${g.prefix}</span>
+            <span class="prod-stock-badge">รวม ${g.totalPieceStock} ${g.pieceUnit}</span>
+
+            <div class="prod-center-image" style="background:${cat ? cat.bg : '#f1f5f9'};">
+              ${centerVisual}
+              <span class="prod-spec-pill group-count-pill">${variantCount} เบอร์ย่อย →</span>
+            </div>
+
+            <div class="prod-bottom-info">
+              <h3 class="prod-name" title="${g.title}">${g.title}</h3>
+              <div class="prod-sub-pack-hint">
+                ${g.totalPackStock > 0 ? `มีแพ็คใหญ่รวม ${g.totalPackStock} แพ็ค` : `รหัสกลุ่ม ${g.prefix}-*`}
+              </div>
+              <div class="prod-meta-row">
+                <span class="prod-sku">${g.prefix}</span>
+                <span class="prod-price" style="font-size:0.82rem;">กดเลือกเบอร์ →</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      container.querySelectorAll('[data-prefix-group]').forEach(card => {
+        card.addEventListener('click', () => {
+          openPrefixGroupLevel3(card.getAttribute('data-prefix-group'));
+        });
+      });
+    }
+
+    function renderSubItemsGrid() {
+      if (!selectedCategoryId || !selectedSkuPrefix) return;
+      const cat = categories.find(c => c.id === selectedCategoryId);
+      const unifiedList = getUnifiedSubCardsForPrefix(selectedCategoryId, selectedSkuPrefix);
+      const container = document.getElementById('productGridContainer');
+
+      container.innerHTML = unifiedList.map(group => {
+        const pieceProd = group.pieceProduct || group.packProduct;
+        const packProd = group.packProduct;
+        const hasBoth = Boolean(group.pieceProduct && group.packProduct);
+
+        // Default is always PIECE ('ชิ้นเล็ก')
+        const currentUnitMode = (hasBoth && cardUnitSelection[group.baseSku] === 'PACK') ? 'PACK' : 'PIECE';
+        const activeProd = currentUnitMode === 'PACK' && packProd ? packProd : pieceProd;
+        const isSelectedForEdit = activeTab === 'STOCK' && selectedEditSku && getBaseSku(selectedEditSku) === group.baseSku;
+        const isLow = activeProd.stock <= 5;
+
+        const toggleHtml = hasBoth ? `
+          <div class="unit-toggle-pill" data-toggle-base="${group.baseSku}">
+            <button type="button" class="unit-opt-btn ${currentUnitMode === 'PIECE' ? 'active-piece' : ''}" data-unit-mode="PIECE" title="ชิ้นเล็ก (ค่าเริ่มต้น)">
+              ${pieceProd.unit}
+            </button>
+            <button type="button" class="unit-opt-btn ${currentUnitMode === 'PACK' ? 'active-pack' : ''}" data-unit-mode="PACK" title="สลับเป็นแพ็คใหญ่ (${packProd.unit})">
+              📦 ${packProd.unit}
+            </button>
+          </div>
+        ` : '';
+
+        const packSubHint = hasBoth
+          ? (currentUnitMode === 'PIECE'
+              ? `<div class="prod-sub-pack-hint">แพ็คใหญ่เหลือ ${packProd.stock} ${packProd.unit} (฿${packProd.price})</div>`
+              : `<div class="prod-sub-pack-hint" style="color:var(--pack); font-weight:600;">1 ${packProd.unit} = ${packProd.packSize || 10} ${pieceProd.unit} (ย่อยเหลือ ${pieceProd.stock})</div>`)
+          : `<div class="prod-sub-pack-hint">รหัสย่อย: ${group.remainderCode}</div>`;
+
+        const imgUrl = activeProd.imageUrl || pieceProd.imageUrl || (packProd ? packProd.imageUrl : '');
+        const centerVisualHtml = imgUrl
+          ? `<img src="${imgUrl}" alt="${activeProd.name}" class="prod-real-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+             <div class="prod-icon-fallback" style="display:none;">${cat ? cat.svg : ''}</div>`
+          : `<div class="prod-icon-fallback">${cat ? cat.svg : ''}</div>`;
+
+        const badgeLabel = currentUnitMode === 'PACK'
+          ? `${group.remainderCode} (แพ็ค×${packProd.packSize || 10})`
+          : group.remainderCode;
+
+        return `
+          <div class="product-card ${currentUnitMode === 'PACK' ? 'pack-mode-active' : ''} ${activeTab === 'STOCK' ? 'stock-edit-card' : ''} ${isSelectedForEdit ? 'selected-for-edit' : ''}" data-card-sku="${activeProd.sku}" data-base-sku="${group.baseSku}">
+            ${toggleHtml}
+
+            <!-- Remaining Stock at Top-Right Corner -->
+            <span class="prod-stock-badge ${currentUnitMode === 'PACK' ? 'pack-stock' : ''} ${isLow ? 'low' : ''}">
+              เหลือ ${activeProd.stock} ${activeProd.unit}
+            </span>
+
+            <!-- Product Image Centered + Remainder of SKU Badge -->
+            <div class="prod-center-image" style="background:${cat ? cat.bg : '#f1f5f9'};">
+              ${centerVisualHtml}
+              <span class="prod-spec-pill ${currentUnitMode === 'PACK' ? 'pack-pill' : ''}">${badgeLabel}</span>
+            </div>
+
+            <!-- Product Name & Details at the Bottom -->
+            <div class="prod-bottom-info">
+              <h3 class="prod-name" title="${activeProd.name}">${pieceProd.name}</h3>
+              ${packSubHint}
+              <div class="prod-meta-row">
+                <span class="prod-sku">${activeProd.sku}</span>
+                <span class="prod-price ${currentUnitMode === 'PACK' ? 'pack-price' : ''}">฿${activeProd.price.toLocaleString()} / ${activeProd.unit}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Bind unit switcher buttons inside sub-card
+      container.querySelectorAll('[data-toggle-base] .unit-opt-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const baseSku = btn.closest('[data-toggle-base]').getAttribute('data-toggle-base');
+          const targetMode = btn.getAttribute('data-unit-mode');
+          cardUnitSelection[baseSku] = targetMode;
+          renderSubItemsGrid();
+          if (activeTab === 'STOCK' && selectedEditSku && getBaseSku(selectedEditSku) === baseSku) {
+            const targetSku = targetMode === 'PACK' ? `${baseSku}-PK` : baseSku;
+            handleProductSelection(targetSku);
+          }
+        });
+      });
+
+      // Bind main sub-card click
+      container.querySelectorAll('[data-card-sku]').forEach(card => {
+        card.addEventListener('click', () => {
+          const sku = card.getAttribute('data-card-sku');
+          handleProductSelection(sku);
+        });
+      });
+    }
+
+    function updateUnpackPreviewText() {
+      if (!selectedEditSku) return;
+      const baseSku = getBaseSku(selectedEditSku);
+      const pieceProd = products.find(p => p.sku === baseSku);
+      const count = Math.max(1, Number(document.getElementById('unpackPackCountInput').value) || 1);
+      const ratio = Math.max(1, Number(document.getElementById('unpackRatioInput').value) || 10);
+      const totalPieces = count * ratio;
+      document.getElementById('unpackResultPreview').textContent = `= ได้ +${totalPieces} ${pieceProd ? pieceProd.unit : 'ชิ้น'}`;
+    }
+
+    function setEditorSubMode(mode) {
+      editorSubMode = mode;
+      const restockBtn = document.getElementById('modeRestockTabBtn');
+      const unpackBtn = document.getElementById('modeUnpackTabBtn');
+      const restockGroup = document.getElementById('restockFieldsGroup');
+      const unpackGroup = document.getElementById('unpackFieldsGroup');
+
+      if (mode === 'UNPACK') {
+        restockBtn.classList.remove('active');
+        unpackBtn.classList.add('active');
+        restockGroup.hidden = true;
+        unpackGroup.hidden = false;
+        updateUnpackPreviewText();
+      } else {
+        unpackBtn.classList.remove('active');
+        restockBtn.classList.add('active');
+        unpackGroup.hidden = true;
+        restockGroup.hidden = false;
+      }
+    }
+
+    function handleProductSelection(sku) {
+      const product = products.find(p => p.sku === sku);
+      if (!product) return;
+
+      if (activeTab === 'SALE') {
+        addToSaleCart(sku, 1);
+      } else {
+        const prefix2 = getSkuPrefix2(product.sku);
+        if (selectedCategoryId !== product.catId) {
+          openCategoryLevel2(product.catId);
+        }
+        if (selectedSkuPrefix !== prefix2) {
+          openPrefixGroupLevel3(prefix2);
+        }
+        selectedEditSku = sku;
+        const baseSku = getBaseSku(sku);
+        const pieceProd = products.find(p => p.sku === baseSku);
+        const packProd = products.find(p => p.sku === `${baseSku}-PK`);
+
+        renderSubItemsGrid();
+        const form = document.getElementById('stockEditForm');
+        form.hidden = false;
+
+        document.getElementById('editingProductLabel').textContent =
+          `${product.name} (คงเหลือ ${product.stock} ${product.unit} • ฿${product.price})`;
+
+        const unpackTabBtn = document.getElementById('modeUnpackTabBtn');
+        if (packProd && pieceProd) {
+          unpackTabBtn.hidden = false;
+          document.getElementById('unpackRatioInput').value = packProd.packSize || 10;
+          document.getElementById('unpackPackCountInput').value = 1;
+          updateUnpackPreviewText();
+        } else {
+          unpackTabBtn.hidden = true;
+          setEditorSubMode('RESTOCK');
+        }
+
+        const existingRestock = stockUpdateQueue.find(q => q.type === 'RESTOCK' && q.sku === sku);
+        document.getElementById('addStockQtyInput').value = existingRestock ? existingRestock.addQty : 10;
+        document.getElementById('newPriceInput').value = existingRestock ? existingRestock.newPrice : product.price;
+      }
+    }
+
+    function addToSaleCart(sku, delta) {
+      const product = products.find(p => p.sku === sku);
+      if (!product) return;
+
+      const existing = saleCart.find(i => i.sku === sku);
+      const currentQty = existing ? existing.qty : 0;
+      const nextQty = currentQty + delta;
+
+      if (nextQty > product.stock) return;
+
+      if (nextQty <= 0) {
+        saleCart = saleCart.filter(i => i.sku !== sku);
+      } else if (existing) {
+        existing.qty = nextQty;
+      } else {
+        saleCart.push({ sku, qty: delta });
+      }
+      renderRightSummary();
+    }
+
+    document.getElementById('modeRestockTabBtn').addEventListener('click', () => setEditorSubMode('RESTOCK'));
+    document.getElementById('modeUnpackTabBtn').addEventListener('click', () => setEditorSubMode('UNPACK'));
+    document.getElementById('unpackPackCountInput').addEventListener('input', updateUnpackPreviewText);
+    document.getElementById('unpackRatioInput').addEventListener('input', updateUnpackPreviewText);
+
+    document.getElementById('stockEditForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (!selectedEditSku) return;
+
+      if (editorSubMode === 'UNPACK') {
+        const baseSku = getBaseSku(selectedEditSku);
+        const pieceProd = products.find(p => p.sku === baseSku);
+        const packProd = products.find(p => p.sku === `${baseSku}-PK`);
+        if (!pieceProd || !packProd) return;
+
+        const unpackCount = Math.max(1, Number(document.getElementById('unpackPackCountInput').value) || 1);
+        const packSize = Math.max(1, Number(document.getElementById('unpackRatioInput').value) || 10);
+        if (unpackCount > packProd.stock) return;
+
+        const existingUnpack = stockUpdateQueue.find(q => q.type === 'UNPACK' && q.packSku === packProd.sku);
+        if (existingUnpack) {
+          existingUnpack.unpackCount = unpackCount;
+          existingUnpack.packSize = packSize;
+        } else {
+          stockUpdateQueue.push({
+            type: 'UNPACK',
+            packSku: packProd.sku,
+            pieceSku: pieceProd.sku,
+            unpackCount,
+            packSize
+          });
+        }
+      } else {
+        const product = products.find(p => p.sku === selectedEditSku);
+        if (!product) return;
+
+        const addQty = Math.max(0, Number(document.getElementById('addStockQtyInput').value) || 0);
+        const newPrice = Math.max(1, Number(document.getElementById('newPriceInput').value) || product.price);
+        if (addQty === 0 && newPrice === product.price) return;
+
+        const existing = stockUpdateQueue.find(q => q.type === 'RESTOCK' && q.sku === selectedEditSku);
+        if (existing) {
+          existing.addQty = addQty;
+          existing.newPrice = newPrice;
+        } else {
+          stockUpdateQueue.push({
+            type: 'RESTOCK',
+            sku: product.sku,
+            addQty,
+            newPrice
+          });
+        }
+      }
+
+      renderRightSummary();
+    });
+
+    // =========================================================================
+    // Google Sheets Cloud Sync
+    // =========================================================================
+    async function callGoogleSheetsApi(action, extraPayload = {}) {
+      const response = await fetch(activeScriptUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          apiKey: activeSecretPin,
+          action,
+          ...extraPayload
+        })
+      });
+      const res = await response.json();
+      if (res.status !== 'ok') {
+        throw new Error(res.message || 'รหัสผ่าน PIN ไม่ถูกต้อง หรือไม่สามารถเชื่อมต่อได้');
+      }
+      return res;
+    }
+
+    function updateDbConnectionIndicators(storeName) {
+      const railBadge = document.getElementById('dbStatusRailBadge');
+      const modalBadge = document.getElementById('dbModalStatusBadge');
+      const syncBtn = document.getElementById('quickSyncRailBtn');
+
+      if (isCloudConnected) {
+        railBadge.innerHTML = '☁️ Sheets<br>Connected';
+        railBadge.style.background = '#065f46';
+        railBadge.style.color = '#a7f3d0';
+        modalBadge.textContent = storeName ? `☁️ เชื่อมต่อแล้ว: ${storeName}` : '☁️ เชื่อมต่อ Google Sheets แล้ว';
+        syncBtn.hidden = false;
+      } else {
+        railBadge.innerHTML = 'Sample<br>Data';
+        railBadge.style.background = '#1e293b';
+        railBadge.style.color = '#cbd5e1';
+        modalBadge.textContent = 'โหมดข้อมูลตัวอย่าง';
+        syncBtn.hidden = true;
+      }
+    }
+
+    async function syncFromGoogleSheets() {
+      const alertBox = document.getElementById('dbModalAlert');
+      const submitBtn = document.getElementById('dbConnectSubmitBtn');
+
+      if (!activeScriptUrl || !activeSecretPin) {
+        alertBox.hidden = false;
+        alertBox.className = 'db-status-msg error';
+        alertBox.textContent = '⚠️ กรุณากรอกลิงก์ Web App URL และรหัสผ่าน PIN ให้ครบทั้ง 2 ช่อง';
+        return;
+      }
+
+      try {
+        submitBtn.textContent = '⏳ กำลังดึงข้อมูลจาก Google Sheets...';
+        const data = await callGoogleSheetsApi('LOAD_DATA');
+        isCloudConnected = true;
+
+        const txList = Array.isArray(data.transactions) ? data.transactions : [];
+        const stockBySku = {};
+        txList.forEach(r => {
+          const sku = String(r[3] || '').trim();
+          if (!sku) return;
+          const type = String(r[2] || 'IN').toUpperCase();
+          const qty = Number(r[5]) || 0;
+          stockBySku[sku] = (stockBySku[sku] || 0) + (type === 'OUT' ? -qty : qty);
+        });
+
+        if (Array.isArray(data.products) && data.products.length > 0) {
+          products.length = 0;
+          categories.length = 0;
+          const catMap = new Map();
+
+          data.products.forEach(r => {
+            const sku = String(r[0] || '').trim();
+            if (!sku) return;
+            const name = String(r[1] || sku).trim();
+            const rawImgUrl = String(r[2] || '').trim();
+            const catName = String(r[3] || 'สินค้าทั่วไป').trim();
+            const unit = String(r[4] || 'ชิ้น').trim();
+            const cost = Number(r[5]) || 0;
+            const price = Number(r[6]) || 0;
+            const sheetStock = r[7] !== '' && r[7] !== undefined ? Number(r[7]) : undefined;
+            const computedStock = stockBySku[sku] !== undefined ? stockBySku[sku] : (sheetStock || 0);
+
+            if (!catMap.has(catName)) {
+              const pal = palettePool[catMap.size % palettePool.length];
+              const catId = `CAT-${catMap.size + 1}`;
+              const catObj = { id: catId, name: catName, desc: 'หมวดหมู่จาก Google Sheets', bg: pal.bg, color: pal.color, svg: pal.svg };
+              catMap.set(catName, catObj);
+              categories.push(catObj);
+            }
+
+            const isPack = isPackSku(sku);
+            products.push({
+              sku,
+              catId: catMap.get(catName).id,
+              name,
+              imageUrl: resolveProductImageUrl(rawImgUrl),
+              unit,
+              cost,
+              price,
+              stock: Math.max(0, computedStock),
+              packSize: isPack ? extractPackSizeFromName(name) : undefined
+            });
+          });
+        }
+
+        if (Array.isArray(data.bills)) {
+          billCounter = data.bills.length + 1;
+        }
+
+        updateDbConnectionIndicators(data.storeName || '');
+        alertBox.hidden = false;
+        alertBox.className = 'db-status-msg success';
+        alertBox.textContent = `✅ เชื่อมต่อสำเร็จ! โหลดสินค้า ${products.length} รหัส (${categories.length} หมวดหมู่) เรียบร้อยแล้ว`;
+
+        closeCategoryToHome();
+        renderCategoryGrid();
+        renderRightSummary();
+      } catch (err) {
+        isCloudConnected = false;
+        updateDbConnectionIndicators('');
+        alertBox.hidden = false;
+        alertBox.className = 'db-status-msg error';
+        alertBox.textContent = '❌ เชื่อมต่อไม่สำเร็จ: ' + err.message;
+      } finally {
+        submitBtn.textContent = '☁️ เชื่อมต่อและดึงข้อมูลจาก Google Sheets';
+      }
+    }
+
+    // =========================================================================
+    // Right Summary & Receipt Printing
+    // =========================================================================
+    function buildInvoiceCopyHtml(bill, copyLabel, isCompact80mm) {
+      const rowsHtml = bill.items.map((item, idx) => `
+        <tr>
+          <td>${idx + 1}. ${item.name}</td>
+          <td class="num">${item.qty} ${item.unit}</td>
+          <td class="num">฿${item.price.toLocaleString()}</td>
+          <td class="num" style="font-weight:700;">฿${item.lineTotal.toLocaleString()}</td>
+        </tr>
+      `).join('');
+
+      return `
+        <div class="invoice-sheet ${isCompact80mm ? 'format-80mm' : ''}">
+          <div class="invoice-header">
+            <div>
+              <div style="font-weight:700; font-size:0.95rem;">บิลเงินสด / ใบเสร็จรับเงิน</div>
+              <div style="color:#475569; font-size:0.75rem;">เลขที่: <strong>${bill.billNo}</strong> • วันที่: ${bill.dateStr} เวลา ${bill.timeStr} น.</div>
+              <div style="color:#0f172a; font-size:0.8125rem; margin-top:2px;">ลูกค้า: <strong>ลูกค้าทั่วไป</strong></div>
+            </div>
+            <span class="invoice-copy-badge">${copyLabel}</span>
+          </div>
+          <table class="invoice-table">
+            <thead>
+              <tr>
+                <th>รายการสินค้า</th>
+                <th class="num">จำนวน</th>
+                <th class="num">ราคา/หน่วย</th>
+                <th class="num">รวมเงิน</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rowsHtml}
+            </tbody>
+          </table>
+          <div class="invoice-totals">
+            <div style="font-size:0.8rem; color:#475569;">จำนวนรวม: ${bill.totalQty} หน่วย</div>
+            <div style="font-size:0.95rem; font-weight:700; border-top:1px solid #0f172a; padding-top:4px; margin-top:2px;">
+              ยอดชำระสุทธิ: ฿${bill.netTotal.toLocaleString()}
+            </div>
+          </div>
+          ${isCompact80mm ? '' : `
+            <div class="invoice-signatures">
+              <div class="sig-box">
+                <div class="sig-line"></div>
+                <div>ผู้รับสินค้า / ลูกค้า</div>
+              </div>
+              <div class="sig-box">
+                <div class="sig-line"></div>
+                <div>ผู้รับเงิน / ร้านค้า</div>
+              </div>
+            </div>
+          `}
+        </div>
+      `;
+    }
+
+    function renderPrintableReceipt() {
+      if (!lastCompletedBill) return;
+      document.getElementById('receiptBillBadge').textContent = lastCompletedBill.billNo;
+      const paperEl = document.getElementById('receiptPaperContent');
+      if (selectedPrintFormat === 'a4-dup') {
+        paperEl.innerHTML = `
+          ${buildInvoiceCopyHtml(lastCompletedBill, 'ต้นฉบับ (สำหรับลูกค้า)', false)}
+          <div class="cut-divider">✂️ เส้นประสำหรับฉีกแบ่งครึ่งกระดาษ A4 (ครึ่งบน: ลูกค้า / ครึ่งล่าง: ร้านค้า)</div>
+          ${buildInvoiceCopyHtml(lastCompletedBill, 'สำเนา (สำหรับร้านค้า)', false)}
+        `;
+      } else if (selectedPrintFormat === 'a5') {
+        paperEl.innerHTML = buildInvoiceCopyHtml(lastCompletedBill, 'ต้นฉบับใบเสร็จ (ขนาด A5)', false);
+      } else {
+        paperEl.innerHTML = buildInvoiceCopyHtml(lastCompletedBill, 'สลิปใบเสร็จ 80mm', true);
+      }
+    }
+
+    function renderRightSummary() {
+      const titleEl = document.getElementById('summaryPanelTitle');
+      const badgeEl = document.getElementById('summaryPanelBadge');
+      const listEl = document.getElementById('summaryItemsList');
+      const row1Label = document.getElementById('sumRow1Label');
+      const row1Val = document.getElementById('sumRow1Value');
+      const row2Label = document.getElementById('sumRow2Label');
+      const row2Val = document.getElementById('sumRow2Value');
+      const confirmBtn = document.getElementById('primaryConfirmBtn');
+      const reopenBtn = document.getElementById('reopenLastReceiptBtn');
+
+      if (activeTab === 'SALE') {
+        titleEl.textContent = '🧾 สรุปรายการบิลขาย';
+        badgeEl.textContent = `BILL-${String(billCounter).padStart(3, '0')}`;
+        confirmBtn.className = 'btn btn-primary';
+        confirmBtn.textContent = '✓ ยืนยันออกบิลและพิมพ์ใบเสร็จ';
+        reopenBtn.hidden = !lastCompletedBill;
+
+        if (saleCart.length === 0) {
+          listEl.innerHTML = `
+            <div class="summary-empty">
+              ยังไม่มีรายการสินค้าในบิล<br>
+              <span style="font-size:0.75rem;">เลือกหมวดหมู่ → เลือกการ์ดรุ่นหลัก (เช่น HK-DMN) → คลิกเลือกเบอร์ย่อย</span>
+            </div>
+          `;
+        } else {
+          listEl.innerHTML = saleCart.map(item => {
+            const p = products.find(x => x.sku === item.sku);
+            const isPack = isPackSku(p.sku);
+            return `
+              <div class="summary-item">
+                <div class="sum-item-info">
+                  <p class="sum-item-name">${p.name}</p>
+                  <span class="sum-item-sub">${isPack ? '📦 แพ็คใหญ่' : 'ชิ้นเล็ก'} • ฿${p.price.toLocaleString()} / ${p.unit}</span>
+                </div>
+                <div class="qty-stepper">
+                  <button type="button" class="step-btn" data-step-sku="${p.sku}" data-delta="-1">-</button>
+                  <span class="step-val">${item.qty}</span>
+                  <button type="button" class="step-btn" data-step-sku="${p.sku}" data-delta="1">+</button>
+                </div>
+                <div class="sum-item-total">฿${(p.price * item.qty).toLocaleString()}</div>
+              </div>
+            `;
+          }).join('');
+
+          listEl.querySelectorAll('[data-step-sku]').forEach(btn => {
+            btn.addEventListener('click', () => {
+              addToSaleCart(btn.getAttribute('data-step-sku'), Number(btn.getAttribute('data-delta')));
+            });
+          });
+        }
+
+        const totalQty = saleCart.reduce((s, i) => s + i.qty, 0);
+        const totalAmt = saleCart.reduce((s, i) => {
+          const p = products.find(x => x.sku === i.sku);
+          return s + (p ? p.price * i.qty : 0);
+        }, 0);
+
+        row1Label.textContent = 'จำนวนสินค้ารวม';
+        row1Val.textContent = `${totalQty} หน่วย`;
+        row2Label.textContent = 'ยอดชำระสุทธิ';
+        row2Val.textContent = `฿${totalAmt.toLocaleString()}`;
+      } else {
+        titleEl.textContent = '📦 สรุปรายการรอปรับปรุง';
+        badgeEl.textContent = `${stockUpdateQueue.length} รายการ`;
+        confirmBtn.className = 'btn btn-warning';
+        confirmBtn.textContent = '✓ ยืนยันบันทึกการปรับปรุง';
+        reopenBtn.hidden = true;
+
+        if (stockUpdateQueue.length === 0) {
+          listEl.innerHTML = `
+            <div class="summary-empty">
+              ยังไม่มีรายการรอปรับปรุงสต็อก/แกะแพ็ค<br>
+              <span style="font-size:0.75rem;">คลิกการ์ดเบอร์ย่อยเพื่อเพิ่มสต็อก ปรับราคา หรือสั่งแกะแพ็คใหญ่เป็นชิ้นเล็ก</span>
+            </div>
+          `;
+        } else {
+          listEl.innerHTML = stockUpdateQueue.map((q, idx) => {
+            if (q.type === 'UNPACK') {
+              const packP = products.find(x => x.sku === q.packSku);
+              const pieceP = products.find(x => x.sku === q.pieceSku);
+              const addPieces = q.unpackCount * q.packSize;
+              return `
+                <div class="summary-item" style="border-color:var(--pack-border); background:var(--pack-soft);">
+                  <div class="sum-item-info">
+                    <p class="sum-item-name">✂️ แกะแพ็ค: ${pieceP.name}</p>
+                    <span class="sum-item-sub">
+                      หัก <strong>-${q.unpackCount} ${packP.unit}</strong> → เพิ่ม <strong>+${addPieces} ${pieceP.unit}</strong>
+                    </span>
+                  </div>
+                  <button type="button" data-remove-idx="${idx}" style="border:none; background:transparent; color:var(--danger); font-size:0.72rem; cursor:pointer;">
+                    ลบออก
+                  </button>
+                </div>
+              `;
+            }
+            const p = products.find(x => x.sku === q.sku);
+            const newStock = p.stock + q.addQty;
+            return `
+              <div class="summary-item">
+                <div class="sum-item-info">
+                  <p class="sum-item-name">${p.name}</p>
+                  <span class="sum-item-sub">
+                    สต็อก: ${p.stock} → <strong>${newStock} ${p.unit}</strong> (+${q.addQty})
+                  </span>
+                </div>
+                <div style="text-align:right;">
+                  <div style="font-size:0.8rem; font-weight:700; color:var(--warning);">
+                    ฿${p.price} → ฿${q.newPrice}
+                  </div>
+                  <button type="button" data-remove-idx="${idx}" style="border:none; background:transparent; color:var(--danger); font-size:0.72rem; cursor:pointer; padding:0;">
+                    ลบออก
+                  </button>
+                </div>
+              </div>
+            `;
+          }).join('');
+
+          listEl.querySelectorAll('[data-remove-idx]').forEach(btn => {
+            btn.addEventListener('click', () => {
+              const idx = Number(btn.getAttribute('data-remove-idx'));
+              stockUpdateQueue.splice(idx, 1);
+              renderRightSummary();
+            });
+          });
+        }
+
+        row1Label.textContent = 'รายการรอดำเนินการ';
+        row1Val.textContent = `${stockUpdateQueue.length} รายการ`;
+        row2Label.textContent = 'สถานะ';
+        row2Val.textContent = stockUpdateQueue.length > 0 ? 'รอกดยืนยัน' : '-';
+      }
+    }
+
+    function switchWorkspaceTab(tab) {
+      activeTab = tab;
+      const saleBtn = document.getElementById('navSaleBtn');
+      const stockBtn = document.getElementById('navStockBtn');
+      const pill = document.getElementById('currentModeIndicator');
+      const editForm = document.getElementById('stockEditForm');
+
+      if (tab === 'SALE') {
+        saleBtn.classList.add('active');
+        saleBtn.setAttribute('aria-selected', 'true');
+        stockBtn.classList.remove('active');
+        stockBtn.setAttribute('aria-selected', 'false');
+        pill.className = 'mode-pill';
+        pill.textContent = '🛒 โหมดขายหน้าร้าน: หมวดหมู่ → การ์ดรหัสหลัก (2 ส่วนแรก) → การ์ดเบอร์ย่อย';
+        editForm.hidden = true;
+      } else {
+        stockBtn.classList.add('active');
+        stockBtn.setAttribute('aria-selected', 'true');
+        saleBtn.classList.remove('active');
+        saleBtn.setAttribute('aria-selected', 'false');
+        pill.className = 'mode-pill stock-mode';
+        pill.textContent = '📦 โหมดจัดการคลัง: คลิกการ์ดเบอร์ย่อยเพื่อเพิ่มสต็อก ปรับราคา หรือ ✂️ แกะแพ็ค';
+      }
+
+      if (selectedCategoryId && selectedSkuPrefix) {
+        renderSubItemsGrid();
+      } else if (selectedCategoryId) {
+        renderPrefixGroupGrid();
+      } else {
+        closeCategoryToHome();
+      }
+      renderRightSummary();
+    }
+
+    // Real-Time Top Search Bar
+    const searchInput = document.getElementById('realtimeSearchInput');
+    const searchDropdown = document.getElementById('realtimeSearchDropdown');
+    const clearSearchBtn = document.getElementById('clearSearchBtn');
+
+    searchInput.addEventListener('input', () => {
+      const query = searchInput.value.trim().toLowerCase();
+      clearSearchBtn.hidden = query.length === 0;
+
+      if (!query) {
+        searchDropdown.hidden = true;
+        return;
+      }
+
+      const keywords = query.split(/\s+/).filter(Boolean);
+      const matches = products.filter(p => {
+        const hay = `${p.sku} ${p.name}`.toLowerCase();
+        return keywords.every(kw => hay.includes(kw));
+      }).slice(0, 8);
+
+      if (matches.length === 0) {
+        searchDropdown.innerHTML = `<div style="padding:12px 14px; font-size:0.85rem; color:var(--muted);">ไม่พบสินค้าที่ตรงกับ "${searchInput.value}"</div>`;
+        searchDropdown.hidden = false;
+        return;
+      }
+
+      searchDropdown.innerHTML = matches.map(p => `
+        <div class="search-result-item" data-search-sku="${p.sku}">
+          <div class="sr-left">
+            <span class="sr-sku">${p.sku}</span>
+            <span class="sr-name">${p.name}</span>
+          </div>
+          <div class="sr-right">
+            <span class="sr-stock">เหลือ ${p.stock} ${p.unit}</span>
+            <span class="sr-price">฿${p.price.toLocaleString()}</span>
+          </div>
+        </div>
+      `).join('');
+      searchDropdown.hidden = false;
+
+      searchDropdown.querySelectorAll('[data-search-sku]').forEach(row => {
+        row.addEventListener('click', () => {
+          const sku = row.getAttribute('data-search-sku');
+          const base = getBaseSku(sku);
+          cardUnitSelection[base] = isPackSku(sku) ? 'PACK' : 'PIECE';
+          handleProductSelection(sku);
+          searchInput.value = '';
+          clearSearchBtn.hidden = true;
+          searchDropdown.hidden = true;
+        });
+      });
+    });
+
+    clearSearchBtn.addEventListener('click', () => {
+      searchInput.value = '';
+      clearSearchBtn.hidden = true;
+      searchDropdown.hidden = true;
+      searchInput.focus();
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.search-wrapper')) {
+        searchDropdown.hidden = true;
+      }
+    });
+
+    // Confirmation Modal & Printable Receipt Flow
+    const confirmModal = document.getElementById('confirmModal');
+    const receiptPrintModal = document.getElementById('receiptPrintModal');
+
+    document.getElementById('primaryConfirmBtn').addEventListener('click', () => {
+      const titleEl = document.getElementById('confirmModalTitle');
+      const subEl = document.getElementById('confirmModalSubtitle');
+      const bodyEl = document.getElementById('confirmModalBody');
+      const commitBtn = document.getElementById('commitModalBtn');
+
+      if (activeTab === 'SALE') {
+        if (saleCart.length === 0) return;
+        const billNo = `BILL-${String(billCounter).padStart(3, '0')}`;
+        let total = 0;
+        const rows = saleCart.map(item => {
+          const p = products.find(x => x.sku === item.sku);
+          const line = p.price * item.qty;
+          total += line;
+          return `<div style="display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px dashed var(--border);">
+            <span>${p.name} x${item.qty} ${p.unit}</span>
+            <strong>฿${line.toLocaleString()}</strong>
+          </div>`;
+        }).join('');
+
+        titleEl.textContent = `ยืนยันการออกบิล ${billNo} และตัดสต็อก`;
+        subEl.textContent = 'ตรวจสอบรายการสินค้าและยอดชำระก่อนตัดสต็อกและเปิดหน้าพิมพ์ใบเสร็จ';
+        bodyEl.innerHTML = `${rows}<div style="display:flex; justify-content:space-between; margin-top:10px; font-size:1rem; font-weight:700;"><span>ยอดชำระสุทธิ</span><span style="color:var(--brand);">฿${total.toLocaleString()}</span></div>`;
+        commitBtn.className = 'btn btn-primary';
+        commitBtn.textContent = '✓ ยืนยันตัดสต็อกและเปิดบิลพิมพ์';
+        confirmModal.classList.add('open');
+      } else {
+        if (stockUpdateQueue.length === 0) return;
+        const rows = stockUpdateQueue.map(q => {
+          if (q.type === 'UNPACK') {
+            const packP = products.find(x => x.sku === q.packSku);
+            const pieceP = products.find(x => x.sku === q.pieceSku);
+            const addPieces = q.unpackCount * q.packSize;
+            return `<div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px dashed var(--border);">
+              <div>
+                <strong>✂️ แกะแพ็ค: ${pieceP.name}</strong>
+                <div style="font-size:0.75rem; color:var(--muted);">หัก ${packP.sku} (-${q.unpackCount} ${packP.unit}) → เพิ่ม ${pieceP.sku} (+${addPieces} ${pieceP.unit})</div>
+              </div>
+              <div style="text-align:right; font-weight:700; color:var(--pack);">
+                +${addPieces} ${pieceP.unit}
+              </div>
+            </div>`;
+          }
+          const p = products.find(x => x.sku === q.sku);
+          return `<div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px dashed var(--border);">
+            <div>
+              <strong>${p.name}</strong>
+              <div style="font-size:0.75rem; color:var(--muted);">สต็อก: ${p.stock} → <strong>${p.stock + q.addQty} ${p.unit}</strong> (+${q.addQty})</div>
+            </div>
+            <div style="text-align:right; font-weight:700; color:var(--warning);">
+              ราคา: ฿${p.price} → ฿${q.newPrice}
+            </div>
+          </div>`;
+        }).join('');
+
+        titleEl.textContent = 'ยืนยันการปรับปรุงสต็อก / แกะแพ็คสินค้า';
+        subEl.textContent = 'กรุณาตรวจสอบรายการเปลี่ยนแปลงจำนวนสต็อกและราคาก่อนบันทึก';
+        bodyEl.innerHTML = rows;
+        commitBtn.className = 'btn btn-warning';
+        commitBtn.textContent = '✓ ยืนยันบันทึกการปรับปรุง';
+        confirmModal.classList.add('open');
+      }
+    });
+
+    document.getElementById('cancelModalBtn').addEventListener('click', () => {
+      confirmModal.classList.remove('open');
+    });
+
+    document.getElementById('commitModalBtn').addEventListener('click', () => {
+      if (activeTab === 'SALE') {
+        const now = new Date();
+        const billNo = `BILL-${String(billCounter).padStart(3, '0')}`;
+        const dateStr = now.toLocaleDateString('th-TH');
+        const timeStr = now.toTimeString().slice(0, 5);
+        const quarterYear = `Q${Math.ceil((now.getMonth() + 1) / 3)}-${now.getFullYear()}`;
+        let totalQty = 0;
+        let netTotal = 0;
+        const txToPush = [];
+
+        const billItems = saleCart.map((item, idx) => {
+          const p = products.find(x => x.sku === item.sku);
+          const lineTotal = p.price * item.qty;
+          totalQty += item.qty;
+          netTotal += lineTotal;
+          p.stock = Math.max(0, p.stock - item.qty);
+          txToPush.push({
+            id: `TX-${Date.now()}-${idx + 1}`,
+            time: `${dateStr} ${timeStr}`,
+            type: 'OUT',
+            sku: p.sku,
+            name: p.name,
+            qty: item.qty,
+            unitPrice: p.price,
+            actor: billNo
+          });
+          return {
+            sku: p.sku,
+            name: p.name,
+            unit: p.unit,
+            qty: item.qty,
+            price: p.price,
+            lineTotal
+          };
+        });
+
+        lastCompletedBill = {
+          billNo,
+          dateStr,
+          timeStr,
+          quarterYear,
+          totalQty,
+          netTotal,
+          items: billItems
+        };
+
+        if (isCloudConnected) {
+          callGoogleSheetsApi('SAVE_BILL', {
+            bill: lastCompletedBill,
+            transactions: txToPush
+          }).catch(() => {});
+        }
+
+        saleCart = [];
+        billCounter += 1;
+        confirmModal.classList.remove('open');
+        if (selectedCategoryId && selectedSkuPrefix) renderSubItemsGrid();
+        else if (selectedCategoryId) renderPrefixGroupGrid();
+        renderRightSummary();
+
+        renderPrintableReceipt();
+        receiptPrintModal.classList.add('open');
+      } else {
+        const now = new Date();
+        const timeStr = `${now.toLocaleDateString('th-TH')} ${now.toTimeString().slice(0, 5)}`;
+        const priceUpdates = [];
+        const txToPush = [];
+
+        stockUpdateQueue.forEach((q, idx) => {
+          if (q.type === 'UNPACK') {
+            const packP = products.find(x => x.sku === q.packSku);
+            const pieceP = products.find(x => x.sku === q.pieceSku);
+            if (packP && pieceP) {
+              const addPieces = q.unpackCount * q.packSize;
+              packP.stock = Math.max(0, packP.stock - q.unpackCount);
+              pieceP.stock += addPieces;
+              txToPush.push({
+                id: `TX-${Date.now()}-U1-${idx}`,
+                time: timeStr,
+                type: 'OUT',
+                sku: packP.sku,
+                name: packP.name,
+                qty: q.unpackCount,
+                unitPrice: packP.cost || packP.price,
+                actor: `แกะแพ็คเป็น ${pieceP.sku}`
+              });
+              txToPush.push({
+                id: `TX-${Date.now()}-U2-${idx}`,
+                time: timeStr,
+                type: 'IN',
+                sku: pieceP.sku,
+                name: pieceP.name,
+                qty: addPieces,
+                unitPrice: pieceP.cost || pieceP.price,
+                actor: `รับจากการแกะแพ็ค ${packP.sku}`
+              });
+            }
+          } else {
+            const p = products.find(x => x.sku === q.sku);
+            if (p) {
+              if (q.addQty > 0) {
+                p.stock += q.addQty;
+                txToPush.push({
+                  id: `TX-${Date.now()}-R-${idx}`,
+                  time: timeStr,
+                  type: 'IN',
+                  sku: p.sku,
+                  name: p.name,
+                  qty: q.addQty,
+                  unitPrice: p.cost || p.price,
+                  actor: 'รับสต็อกเข้าคลัง'
+                });
+              }
+              if (q.newPrice !== p.price) {
+                p.price = q.newPrice;
+                priceUpdates.push({ sku: p.sku, newPrice: q.newPrice });
+              }
+            }
+          }
+        });
+
+        if (isCloudConnected && (priceUpdates.length > 0 || txToPush.length > 0)) {
+          callGoogleSheetsApi('BATCH_UPDATE_STOCK_PRICE', {
+            priceUpdates,
+            transactions: txToPush
+          }).catch(() => {});
+        }
+
+        stockUpdateQueue = [];
+        document.getElementById('stockEditForm').hidden = true;
+        selectedEditSku = null;
+        confirmModal.classList.remove('open');
+        if (selectedCategoryId && selectedSkuPrefix) renderSubItemsGrid();
+        else if (selectedCategoryId) renderPrefixGroupGrid();
+        renderRightSummary();
+      }
+    });
+
+    // Receipt Print Modal Controls
+    document.querySelectorAll('[data-print-format]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('[data-print-format]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        selectedPrintFormat = btn.getAttribute('data-print-format');
+        renderPrintableReceipt();
+      });
+    });
+
+    document.getElementById('triggerPrintBtn').addEventListener('click', () => {
+      try { window.print(); } catch (e) {}
+    });
+
+    document.getElementById('closeReceiptModalBtn').addEventListener('click', () => {
+      receiptPrintModal.classList.remove('open');
+    });
+
+    document.getElementById('reopenLastReceiptBtn').addEventListener('click', () => {
+      if (!lastCompletedBill) return;
+      renderPrintableReceipt();
+      receiptPrintModal.classList.add('open');
+    });
+
+    document.getElementById('copyReceiptTextBtn').addEventListener('click', async (e) => {
+      if (!lastCompletedBill) return;
+      const lines = lastCompletedBill.items.map((i, idx) => `${idx + 1}. ${i.name} x${i.qty} ${i.unit} = ฿${i.lineTotal.toLocaleString()}`);
+      const txt = [
+        `บิลเงินสด: ${lastCompletedBill.billNo}`,
+        `วันที่: ${lastCompletedBill.dateStr} ${lastCompletedBill.timeStr} น.`,
+        `------------------------`,
+        ...lines,
+        `------------------------`,
+        `ยอดชำระสุทธิ: ฿${lastCompletedBill.netTotal.toLocaleString()}`
+      ].join('\n');
+      try {
+        await navigator.clipboard.writeText(txt);
+        const btn = e.currentTarget;
+        btn.textContent = '✓ คัดลอกแล้ว';
+        setTimeout(() => { btn.textContent = 'คัดลอกข้อความบิล'; }, 1800);
+      } catch (err) {}
+    });
+
+    // Database Connection Modal Controls
+    const dbConnectModal = document.getElementById('dbConnectModal');
+
+    document.getElementById('openDbModalBtn').addEventListener('click', () => {
+      dbConnectModal.classList.add('open');
+    });
+
+    document.getElementById('closeDbModalBtn').addEventListener('click', () => {
+      dbConnectModal.classList.remove('open');
+    });
+
+    document.getElementById('quickSyncRailBtn').addEventListener('click', () => {
+      syncFromGoogleSheets();
+    });
+
+    document.getElementById('dbConnectForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      activeScriptUrl = document.getElementById('gasUrlInput').value.trim();
+      activeSecretPin = document.getElementById('gasPinInput').value.trim();
+      const mode = document.querySelector('input[name="dbPersistMode"]:checked').value;
+
+      try {
+        localStorage.setItem('VISUAL_POS_GAS_URL', activeScriptUrl);
+        if (mode === 'REMEMBER') {
+          localStorage.setItem('VISUAL_POS_PIN', activeSecretPin);
+        } else {
+          localStorage.removeItem('VISUAL_POS_PIN');
+          sessionStorage.setItem('VISUAL_POS_PIN', activeSecretPin);
+        }
+      } catch (err) {}
+
+      syncFromGoogleSheets();
+    });
+
+    document.getElementById('clearDbSavedBtn').addEventListener('click', () => {
+      try {
+        localStorage.removeItem('VISUAL_POS_GAS_URL');
+        localStorage.removeItem('VISUAL_POS_PIN');
+        sessionStorage.removeItem('VISUAL_POS_PIN');
+      } catch (err) {}
+      document.getElementById('gasUrlInput').value = '';
+      document.getElementById('gasPinInput').value = '';
+      activeScriptUrl = '';
+      activeSecretPin = '';
+      isCloudConnected = false;
+      updateDbConnectionIndicators('');
+      const alertBox = document.getElementById('dbModalAlert');
+      alertBox.hidden = false;
+      alertBox.className = 'db-status-msg';
+      alertBox.textContent = 'ล้างค่ารหัสผ่านและลิงก์ที่จำไว้ในเครื่องเรียบร้อยแล้ว';
+    });
+
+    document.getElementById('clearSummaryBtn').addEventListener('click', () => {
+      if (activeTab === 'SALE') {
+        saleCart = [];
+      } else {
+        stockUpdateQueue = [];
+      }
+      renderRightSummary();
+    });
+
+    document.getElementById('navSaleBtn').addEventListener('click', () => switchWorkspaceTab('SALE'));
+    document.getElementById('navStockBtn').addEventListener('click', () => switchWorkspaceTab('STOCK'));
+    document.getElementById('backToCategoriesBtn').addEventListener('click', closeCategoryToHome);
+    document.getElementById('backToPrefixGroupsBtn').addEventListener('click', () => {
+      if (selectedCategoryId) openCategoryLevel2(selectedCategoryId);
+    });
+
+    // Auto-load saved credentials if available
+    try {
+      const savedUrl = localStorage.getItem('VISUAL_POS_GAS_URL') || '';
+      const savedPin = localStorage.getItem('VISUAL_POS_PIN') || sessionStorage.getItem('VISUAL_POS_PIN') || '';
+      if (savedUrl) document.getElementById('gasUrlInput').value = savedUrl;
+      if (savedPin) document.getElementById('gasPinInput').value = savedPin;
+      if (savedUrl && savedPin) {
+        activeScriptUrl = savedUrl;
+        activeSecretPin = savedPin;
+        syncFromGoogleSheets();
+      }
+    } catch (err) {}
+
+    // Initialize
+    renderCategoryGrid();
+    renderRightSummary();
+  </script>
+</body>
+</html>
