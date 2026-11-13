@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Smart Visual POS & Stock — รวมการ์ดชิ้นเล็กและแพ็คใหญ่ในใบเดียว</title>
+  <title>Smart Visual POS & Stock — ระบบขายหน้าร้านและจัดการสต็อก (3-Level SKU Drill-Down)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -39,13 +39,8 @@
       --font: 'IBM Plex Sans Thai', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
 
-    * {
-      box-sizing: border-box;
-    }
-
-    [hidden] {
-      display: none !important;
-    }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
 
     html, body {
       margin: 0;
@@ -70,9 +65,7 @@
     }
 
     @media (max-width: 960px) {
-      .app-shell {
-        grid-template-columns: 76px 1fr 310px;
-      }
+      .app-shell { grid-template-columns: 76px 1fr 310px; }
     }
 
     /* 1. Left Navigation Rail */
@@ -114,7 +107,6 @@
       font-size: 0.6875rem;
       font-weight: 600;
       color: #94a3b8;
-      letter-spacing: 0.02em;
     }
 
     .rail-nav {
@@ -144,21 +136,14 @@
       line-height: 1.3;
     }
 
-    .rail-tab-btn:hover {
-      background: #1e293b;
-      color: #f8fafc;
-    }
-
+    .rail-tab-btn:hover { background: #1e293b; color: #f8fafc; }
     .rail-tab-btn.active {
       background: var(--brand);
       color: #ffffff;
       box-shadow: 0 4px 12px rgba(15, 118, 110, 0.35);
     }
 
-    .rail-footer {
-      text-align: center;
-    }
-
+    .rail-footer { text-align: center; width: 100%; }
     .sample-tag {
       display: inline-block;
       font-size: 0.625rem;
@@ -194,12 +179,7 @@
       flex-shrink: 0;
     }
 
-    .search-wrapper {
-      position: relative;
-      flex: 1;
-      max-width: 560px;
-    }
-
+    .search-wrapper { position: relative; flex: 1; max-width: 560px; }
     .search-input-box {
       display: flex;
       align-items: center;
@@ -262,23 +242,11 @@
       padding: 10px 14px;
       border-bottom: 1px solid var(--border);
       cursor: pointer;
-      transition: background 0.12s ease;
     }
+    .search-result-item:last-child { border-bottom: none; }
+    .search-result-item:hover { background: var(--brand-soft); }
 
-    .search-result-item:last-child {
-      border-bottom: none;
-    }
-
-    .search-result-item:hover {
-      background: var(--brand-soft);
-    }
-
-    .sr-left {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
+    .sr-left { display: flex; align-items: center; gap: 10px; }
     .sr-sku {
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
       font-size: 0.75rem;
@@ -288,28 +256,10 @@
       border: 1px solid var(--border);
       color: var(--muted);
     }
-
-    .sr-name {
-      font-weight: 600;
-      font-size: 0.9rem;
-    }
-
-    .sr-right {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .sr-stock {
-      font-size: 0.75rem;
-      color: var(--muted);
-    }
-
-    .sr-price {
-      font-weight: 700;
-      color: var(--brand);
-      font-size: 0.9375rem;
-    }
+    .sr-name { font-weight: 600; font-size: 0.9rem; }
+    .sr-right { display: flex; align-items: center; gap: 12px; }
+    .sr-stock { font-size: 0.75rem; color: var(--muted); }
+    .sr-price { font-weight: 700; color: var(--brand); font-size: 0.9375rem; }
 
     /* Breadcrumb / Stage Header */
     .stage-header {
@@ -323,14 +273,15 @@
     .stage-title-group {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
+      flex-wrap: wrap;
     }
 
     .back-cat-btn {
       font: inherit;
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       font-weight: 600;
-      padding: 7px 14px;
+      padding: 6px 12px;
       border-radius: var(--radius-sm);
       border: 1px solid var(--border-strong);
       background: var(--surface);
@@ -375,7 +326,7 @@
       border-color: #fde68a;
     }
 
-    /* Visual Category Grid */
+    /* Level 1: Category Grid */
     .category-grid {
       flex: 1;
       display: grid;
@@ -419,20 +370,10 @@
       flex-shrink: 0;
     }
 
-    .cat-name {
-      font-size: 1.05rem;
-      font-weight: 700;
-      margin: 0;
-      color: var(--ink);
-    }
+    .cat-name { font-size: 1.05rem; font-weight: 700; margin: 0; color: var(--ink); }
+    .cat-meta { font-size: 0.78rem; color: var(--muted); margin: 0; }
 
-    .cat-meta {
-      font-size: 0.78rem;
-      color: var(--muted);
-      margin: 0;
-    }
-
-    /* Unified Product Grid (1 Card combines Small Piece [Default] + Big Pack) */
+    /* Level 2 (SKU Prefix Group Grid) & Level 3 (Sub-item Grid) */
     .product-grid-stage {
       flex: 1;
       display: flex;
@@ -457,9 +398,7 @@
 
     .product-grid::-webkit-scrollbar,
     .summary-list::-webkit-scrollbar,
-    .search-dropdown::-webkit-scrollbar {
-      width: 6px;
-    }
+    .search-dropdown::-webkit-scrollbar { width: 6px; }
 
     .product-grid::-webkit-scrollbar-thumb,
     .summary-list::-webkit-scrollbar-thumb,
@@ -480,7 +419,7 @@
       justify-content: space-between;
       text-align: center;
       box-shadow: var(--shadow-sm);
-      transition: transform 0.14s ease, border-color 0.14s ease, box-shadow 0.14s ease, background 0.14s ease;
+      transition: transform 0.14s ease, border-color 0.14s ease, box-shadow 0.14s ease;
       position: relative;
       overflow: hidden;
     }
@@ -491,15 +430,28 @@
       transform: translateY(-2px);
     }
 
-    /* When card is switched to Big Pack mode */
+    /* Group Card specific badge (Level 2: e.g., HK-DMN) */
+    .prefix-group-badge {
+      position: absolute;
+      top: 9px;
+      left: 9px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: #0f172a;
+      color: #ffffff;
+      z-index: 2;
+    }
+
+    /* Sub-item Card when switched to Big Pack mode */
     .product-card.pack-mode-active {
       border-color: var(--pack-border);
       background: var(--pack-soft);
     }
 
-    .product-card.pack-mode-active:hover {
-      border-color: var(--pack);
-    }
+    .product-card.pack-mode-active:hover { border-color: var(--pack); }
 
     .product-card.selected-for-edit {
       border-color: var(--warning) !important;
@@ -507,7 +459,7 @@
       box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.16);
     }
 
-    /* Unit Toggle Switch on Top-Left of Card (Default = ชิ้นเล็ก) */
+    /* Unit Toggle Switch on Top-Left of Sub-Card (Default = ชิ้นเล็ก) */
     .unit-toggle-pill {
       position: absolute;
       top: 9px;
@@ -534,15 +486,8 @@
       transition: all 0.12s ease;
     }
 
-    .unit-opt-btn.active-piece {
-      background: var(--brand);
-      color: #ffffff;
-    }
-
-    .unit-opt-btn.active-pack {
-      background: var(--pack);
-      color: #ffffff;
-    }
+    .unit-opt-btn.active-piece { background: var(--brand); color: #ffffff; }
+    .unit-opt-btn.active-pack { background: var(--pack); color: #ffffff; }
 
     /* Remaining Stock Badge at Top-Right Corner */
     .prod-stock-badge {
@@ -574,8 +519,8 @@
     /* Product Image Centered in the Middle */
     .prod-center-image {
       margin-top: 26px;
-      width: 74px;
-      height: 74px;
+      width: 76px;
+      height: 76px;
       border-radius: 20px;
       display: flex;
       align-items: center;
@@ -583,30 +528,47 @@
       flex-shrink: 0;
       position: relative;
       box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.06);
+      overflow: visible;
     }
 
+    .prod-real-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 20px;
+      display: block;
+    }
+
+    .prod-icon-fallback {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Remainder of SKU / Spec Pill under the centered image */
     .prod-spec-pill {
       position: absolute;
-      bottom: -7px;
+      bottom: -8px;
       background: #0f172a;
       color: #ffffff;
-      font-size: 0.64rem;
+      font-size: 0.66rem;
       font-weight: 700;
-      padding: 1px 8px;
+      padding: 2px 9px;
       border-radius: 999px;
       letter-spacing: 0.02em;
       white-space: nowrap;
-      box-shadow: 0 2px 5px rgba(15, 23, 42, 0.2);
+      box-shadow: 0 2px 5px rgba(15, 23, 42, 0.22);
     }
 
-    .prod-spec-pill.pack-pill {
-      background: var(--pack);
-    }
+    .prod-spec-pill.pack-pill { background: var(--pack); }
+    .prod-spec-pill.group-count-pill { background: var(--brand); }
 
     /* Product Name & Details at the Bottom */
     .prod-bottom-info {
       width: 100%;
-      margin-top: 8px;
+      margin-top: 10px;
       padding-top: 7px;
       border-top: 1px dashed var(--border);
       display: flex;
@@ -628,10 +590,7 @@
       width: 100%;
     }
 
-    .prod-sub-pack-hint {
-      font-size: 0.68rem;
-      color: var(--muted);
-    }
+    .prod-sub-pack-hint { font-size: 0.68rem; color: var(--muted); }
 
     .prod-meta-row {
       display: flex;
@@ -647,17 +606,10 @@
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     }
 
-    .prod-price {
-      font-size: 0.96rem;
-      font-weight: 700;
-      color: var(--brand);
-    }
+    .prod-price { font-size: 0.94rem; font-weight: 700; color: var(--brand); }
+    .prod-price.pack-price { color: var(--pack); }
 
-    .prod-price.pack-price {
-      color: var(--pack);
-    }
-
-    /* Inline Stock / Price / Unpack Editor Bar (Only visible in Tab 2 when a card is clicked) */
+    /* Inline Stock / Price / Unpack Editor Bar */
     .stock-editor-bar {
       background: var(--surface);
       border: 1.5px solid var(--warning);
@@ -693,31 +645,11 @@
       cursor: pointer;
     }
 
-    .editor-tab-btn.active {
-      background: var(--warning);
-      color: #ffffff;
-    }
+    .editor-tab-btn.active { background: var(--warning); color: #ffffff; }
 
-    .editor-fields {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .editor-field {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .editor-field label {
-      font-size: 0.78rem;
-      font-weight: 600;
-      color: var(--muted);
-      white-space: nowrap;
-    }
-
+    .editor-fields { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .editor-field { display: flex; align-items: center; gap: 6px; }
+    .editor-field label { font-size: 0.78rem; font-weight: 600; color: var(--muted); white-space: nowrap; }
     .editor-input {
       width: 84px;
       font: inherit;
@@ -752,15 +684,7 @@
       flex-shrink: 0;
     }
 
-    .summary-title {
-      margin: 0;
-      font-size: 1.02rem;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
+    .summary-title { margin: 0; font-size: 1.02rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
     .summary-badge {
       font-size: 0.72rem;
       font-weight: 700;
@@ -781,13 +705,7 @@
       overflow-y: auto;
     }
 
-    .summary-empty {
-      margin: auto;
-      text-align: center;
-      color: var(--muted);
-      font-size: 0.85rem;
-      padding: 20px;
-    }
+    .summary-empty { margin: auto; text-align: center; color: var(--muted); font-size: 0.85rem; padding: 20px; }
 
     .summary-item {
       background: var(--surface-subtle);
@@ -801,24 +719,9 @@
       flex-shrink: 0;
     }
 
-    .sum-item-info {
-      min-width: 0;
-      flex: 1;
-    }
-
-    .sum-item-name {
-      font-size: 0.84rem;
-      font-weight: 600;
-      margin: 0;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .sum-item-sub {
-      font-size: 0.72rem;
-      color: var(--muted);
-    }
+    .sum-item-info { min-width: 0; flex: 1; }
+    .sum-item-name { font-size: 0.84rem; font-weight: 600; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sum-item-sub { font-size: 0.72rem; color: var(--muted); }
 
     .qty-stepper {
       display: inline-flex;
@@ -829,66 +732,15 @@
       overflow: hidden;
     }
 
-    .step-btn {
-      border: none;
-      background: transparent;
-      width: 24px;
-      height: 24px;
-      font-weight: 700;
-      cursor: pointer;
-      color: var(--ink);
-    }
+    .step-btn { border: none; background: transparent; width: 24px; height: 24px; font-weight: 700; cursor: pointer; color: var(--ink); }
+    .step-btn:hover { background: var(--surface-subtle); }
+    .step-val { padding: 0 8px; font-size: 0.8rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .sum-item-total { font-size: 0.875rem; font-weight: 700; min-width: 64px; text-align: right; font-variant-numeric: tabular-nums; }
 
-    .step-btn:hover {
-      background: var(--surface-subtle);
-    }
-
-    .step-val {
-      padding: 0 8px;
-      font-size: 0.8rem;
-      font-weight: 700;
-      font-variant-numeric: tabular-nums;
-    }
-
-    .sum-item-total {
-      font-size: 0.875rem;
-      font-weight: 700;
-      min-width: 64px;
-      text-align: right;
-      font-variant-numeric: tabular-nums;
-    }
-
-    .summary-footer {
-      border-top: 1px solid var(--border);
-      padding-top: 12px;
-      flex-shrink: 0;
-    }
-
-    .totals-box {
-      background: var(--surface-subtle);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 10px 12px;
-      margin-bottom: 12px;
-    }
-
-    .tot-row {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.8125rem;
-      color: var(--muted);
-      margin-bottom: 4px;
-    }
-
-    .tot-row.grand {
-      margin-top: 6px;
-      padding-top: 6px;
-      border-top: 1px solid var(--border-strong);
-      font-size: 1.15rem;
-      font-weight: 700;
-      color: var(--ink);
-      margin-bottom: 0;
-    }
+    .summary-footer { border-top: 1px solid var(--border); padding-top: 12px; flex-shrink: 0; }
+    .totals-box { background: var(--surface-subtle); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px; margin-bottom: 12px; }
+    .tot-row { display: flex; justify-content: space-between; font-size: 0.8125rem; color: var(--muted); margin-bottom: 4px; }
+    .tot-row.grand { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border-strong); font-size: 1.15rem; font-weight: 700; color: var(--ink); margin-bottom: 0; }
 
     .btn {
       font: inherit;
@@ -905,39 +757,14 @@
       transition: all 0.15s ease;
     }
 
-    .btn-primary {
-      background: var(--brand);
-      color: var(--brand-ink);
-    }
+    .btn-primary { background: var(--brand); color: var(--brand-ink); }
+    .btn-primary:hover { background: var(--brand-hover); }
+    .btn-warning { background: var(--warning); color: #ffffff; }
+    .btn-warning:hover { background: #b45309; }
+    .btn-secondary { background: var(--surface); color: var(--ink); border-color: var(--border-strong); }
+    .btn-secondary:hover { background: var(--surface-subtle); }
 
-    .btn-primary:hover {
-      background: var(--brand-hover);
-    }
-
-    .btn-warning {
-      background: var(--warning);
-      color: #ffffff;
-    }
-
-    .btn-warning:hover {
-      background: #b45309;
-    }
-
-    .btn-secondary {
-      background: var(--surface);
-      color: var(--ink);
-      border-color: var(--border-strong);
-    }
-
-    .btn-secondary:hover {
-      background: var(--surface-subtle);
-    }
-
-    .action-stack {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 8px;
-    }
+    .action-stack { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
 
     /* Modals */
     .modal-backdrop {
@@ -952,10 +779,7 @@
       z-index: 100;
     }
 
-    .modal-backdrop.open {
-      display: flex;
-    }
-
+    .modal-backdrop.open { display: flex; }
     .modal-card {
       background: var(--surface);
       border-radius: var(--radius-lg);
@@ -966,12 +790,7 @@
       border: 1px solid var(--border);
     }
 
-    .modal-title {
-      margin: 0 0 8px;
-      font-size: 1.15rem;
-      font-weight: 700;
-    }
-
+    .modal-title { margin: 0 0 8px; font-size: 1.15rem; font-weight: 700; }
     .modal-body {
       background: var(--surface-subtle);
       border: 1px solid var(--border);
@@ -983,20 +802,10 @@
       overflow-y: auto;
     }
 
-    .modal-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
 
-    /* Printable Receipt & Format Switcher Styles */
-    .receipt-modal-card {
-      max-width: 680px;
-      max-height: 92vh;
-      overflow-y: auto;
-    }
-
+    /* Printable Receipt & Database Modal Styles */
+    .receipt-modal-card { max-width: 680px; max-height: 92vh; overflow-y: auto; }
     .print-format-bar {
       display: flex;
       flex-wrap: wrap;
@@ -1010,12 +819,7 @@
       margin-top: 10px;
     }
 
-    .format-options {
-      display: inline-flex;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-
+    .format-options { display: inline-flex; gap: 6px; flex-wrap: wrap; }
     .format-btn {
       font: inherit;
       font-size: 0.78rem;
@@ -1027,12 +831,7 @@
       color: var(--muted);
       cursor: pointer;
     }
-
-    .format-btn.active {
-      background: var(--brand);
-      color: var(--brand-ink);
-      border-color: var(--brand);
-    }
+    .format-btn.active { background: var(--brand); color: var(--brand-ink); border-color: var(--brand); }
 
     .receipt-paper {
       background: #fafafa;
@@ -1044,1312 +843,22 @@
       overflow-y: auto;
     }
 
-    .invoice-sheet {
-      background: #ffffff;
-      color: #0f172a;
-      border: 1px solid var(--border-strong);
-      border-radius: 6px;
-      padding: 16px 20px;
-      font-size: 0.8125rem;
-    }
-
-    .invoice-sheet.format-80mm {
-      max-width: 310px;
-      margin: 0 auto;
-    }
-
-    .invoice-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      border-bottom: 2px solid #0f172a;
-      padding-bottom: 8px;
-      margin-bottom: 10px;
-      gap: 12px;
-    }
-
-    .invoice-copy-badge {
-      display: inline-block;
-      font-size: 0.75rem;
-      font-weight: 700;
-      padding: 2px 8px;
-      border: 1px solid #0f172a;
-      border-radius: 4px;
-      white-space: nowrap;
-    }
-
-    .invoice-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 8px 0;
-      font-size: 0.8125rem;
-    }
-
-    .invoice-table th,
-    .invoice-table td {
-      padding: 5px 6px;
-      border-bottom: 1px solid #cbd5e1;
-      text-align: left;
-    }
-
-    .invoice-table th.num,
-    .invoice-table td.num {
-      text-align: right;
-      font-variant-numeric: tabular-nums;
-    }
-
-    .invoice-table th {
-      background: #f1f5f9;
-      color: #0f172a;
-      font-weight: 700;
-    }
-
-    .invoice-totals {
-      margin-top: 8px;
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 2px;
-    }
-
-    .invoice-signatures {
-      display: flex;
-      justify-content: space-between;
-      gap: 24px;
-      margin-top: 16px;
-      padding-top: 8px;
-      font-size: 0.75rem;
-      text-align: center;
-    }
-
-    .sig-box {
-      flex: 1;
-    }
-
-    .sig-line {
-      border-bottom: 1px dotted #475569;
-      height: 22px;
-      margin-bottom: 4px;
-    }
-
-    .cut-divider {
-      border-top: 1px dashed #64748b;
-      margin: 14px 0;
-      text-align: center;
-      font-size: 0.75rem;
-      color: #475569;
-    }
-
-    @media print {
-      @page {
-        margin: 8mm;
-      }
-      html, body {
-        height: auto !important;
-        overflow: visible !important;
-        background: #ffffff !important;
-      }
-      .app-shell,
-      #confirmModal,
-      .no-print {
-        display: none !important;
-      }
-      #receiptPrintModal {
-        position: static !important;
-        display: block !important;
-        background: transparent !important;
-        padding: 0 !important;
-      }
-      .receipt-modal-card {
-        max-width: 100% !important;
-        width: 100% !important;
-        max-height: none !important;
-        overflow: visible !important;
-        box-shadow: none !important;
-        border: none !important;
-        padding: 0 !important;
-      }
-      .receipt-paper {
-        background: transparent !important;
-        border: none !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        max-height: none !important;
-        overflow: visible !important;
-      }
-    }
-  </style>
-</head>
-<body>
-
-  <div class="app-shell">
-    <!-- 1. Left Sidebar Rail -->
-    <aside class="left-rail" aria-label="เมนูหลักด้านซ้าย">
-      <div class="rail-brand">
-        <div class="rail-logo">POS</div>
-        <span class="rail-brand-text">Visual POS</span>
-      </div>
-
-      <nav class="rail-nav" role="tablist">
-        <button type="button" class="rail-tab-btn active" id="navSaleBtn" role="tab" aria-selected="true">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/>
-            <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>
-          </svg>
-          <span>ขายสินค้า<br>(ออกบิล)</span>
-        </button>
-
-        <button type="button" class="rail-tab-btn" id="navStockBtn" role="tab" aria-selected="false">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-            <polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>
-          </svg>
-          <span>เพิ่มสต็อก /<br>✂️ แกะแพ็ค</span>
-        </button>
-      </nav>
-
-      <div class="rail-footer">
-        <span class="sample-tag">Sample<br>Data</span>
-      </div>
-    </aside>
-
-    <!-- 2. Center Main Workspace -->
-    <main class="center-stage">
-      <!-- Top Real-Time Search Bar -->
-      <header class="top-bar">
-        <div class="search-wrapper">
-          <div class="search-input-box">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-            </svg>
-            <input
-              type="text"
-              id="realtimeSearchInput"
-              class="search-input"
-              placeholder="พิมพ์ค้นหาชื่อสินค้า เบอร์ หรือรหัส SKU (ค้นได้ทั้งชิ้นเล็กและแพ็คใหญ่)..."
-              autocomplete="off"
-            >
-            <button type="button" id="clearSearchBtn" class="search-clear-btn" hidden title="ล้างคำค้นหา">✕</button>
-          </div>
-          <!-- Real-Time Floating List -->
-          <div id="realtimeSearchDropdown" class="search-dropdown" hidden></div>
-        </div>
-
-        <div id="currentModeIndicator" class="mode-pill">
-          🛒 โหมดขายหน้าร้าน: การ์ดรวมชิ้นเล็ก (ค่าเริ่มต้น) และแพ็คใหญ่ไว้ในใบเดียว
-        </div>
-      </header>
-
-      <!-- Breadcrumb / Stage Navigation Header -->
-      <div class="stage-header">
-        <div class="stage-title-group">
-          <button type="button" id="backToCategoriesBtn" class="back-cat-btn" hidden>
-            ← กลับหน้าหมวดหมู่ทั้งหมด
-          </button>
-          <h1 class="stage-title" id="stageHeading">เลือกหมวดหมู่สินค้า (คลิกที่รูปเพื่อดูรายการสินค้า)</h1>
-        </div>
-        <span style="font-size: 0.78rem; color: var(--muted);" id="stageSubHint">
-          รวมแพ็คใหญ่และชิ้นเล็กไว้ในการ์ดเดียว (ตั้งค่าเริ่มต้นเป็นชิ้นเล็ก)
-        </span>
-      </div>
-
-      <!-- View A: Visual Category Cards Grid -->
-      <section id="categoryGridView" class="category-grid" aria-label="หมวดหมู่สินค้า"></section>
-
-      <!-- View B: Unified Products Grid + Inline Stock/Price/Unpack Editor when in Stock Mode -->
-      <section id="productGridView" class="product-grid-stage" hidden aria-label="รายการสินค้าในหมวดหมู่">
-        <div id="productGridContainer" class="product-grid"></div>
-
-        <!-- Inline Stock / Price / Unpack Bar (Only shown in Tab 2 when a product card is clicked) -->
-        <form id="stockEditForm" class="stock-editor-bar" hidden>
-          <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
-            <div class="editor-action-tabs" id="editorActionTabs">
-              <button type="button" class="editor-tab-btn active" id="modeRestockTabBtn">📦 เพิ่มสต็อก / ปรับราคา</button>
-              <button type="button" class="editor-tab-btn" id="modeUnpackTabBtn">✂️ แกะแพ็คใหญ่เป็นชิ้นเล็ก</button>
-            </div>
-            <div>
-              <div style="font-size:0.72rem; color:var(--warning); font-weight:700;" id="editingModeSubLabel">กำลังแก้ไขรายการ:</div>
-              <div style="font-size:0.9rem; font-weight:700;" id="editingProductLabel">-</div>
-            </div>
-          </div>
-
-          <!-- Fields for Normal Stock & Price Adjustment -->
-          <div class="editor-fields" id="restockFieldsGroup">
-            <div class="editor-field">
-              <label for="addStockQtyInput">เพิ่มสต็อก (+):</label>
-              <input type="number" id="addStockQtyInput" class="editor-input" min="0" value="0">
-            </div>
-            <div class="editor-field">
-              <label for="newPriceInput">ราคาขายใหม่ (฿):</label>
-              <input type="number" id="newPriceInput" class="editor-input" min="1" value="0">
-            </div>
-            <button type="submit" class="btn btn-warning" style="padding: 7px 14px; font-size:0.84rem;">
-              + เพิ่มเข้าคิวปรับปรุง
-            </button>
-          </div>
-
-          <!-- Fields for Unpacking Big Pack -> Small Pieces -->
-          <div class="editor-fields" id="unpackFieldsGroup" hidden>
-            <div class="editor-field">
-              <label for="unpackPackCountInput">แกะแพ็คใหญ่ (-):</label>
-              <input type="number" id="unpackPackCountInput" class="editor-input" min="1" value="1">
-            </div>
-            <div class="editor-field">
-              <label for="unpackRatioInput">ได้ชิ้นเล็ก/แพ็ค (×):</label>
-              <input type="number" id="unpackRatioInput" class="editor-input" min="1" value="10">
-            </div>
-            <span style="font-size:0.82rem; font-weight:700; color:var(--brand);" id="unpackResultPreview">= ได้ +10 กล่อง</span>
-            <button type="submit" class="btn btn-warning" style="padding: 7px 14px; font-size:0.84rem;">
-              ✂️ เพิ่มคิวแกะแพ็ค
-            </button>
-          </div>
-        </form>
-      </section>
-    </main>
-
-    <!-- 3. Right Summary Panel (Always visible on the right) -->
-    <aside class="right-summary" aria-label="สรุปรายการด้านขวา">
-      <div class="summary-header">
-        <h2 class="summary-title" id="summaryPanelTitle">🧾 สรุปรายการบิลขาย</h2>
-        <div style="display:flex; align-items:center; gap:6px;">
-          <button type="button" id="reopenLastReceiptBtn" class="btn btn-secondary" hidden style="padding:4px 8px; font-size:0.72rem;" title="ดูและพิมพ์บิลล่าสุด">
-            🖨️ บิลล่าสุด
-          </button>
-          <span class="summary-badge" id="summaryPanelBadge">BILL-001</span>
-        </div>
-      </div>
-
-      <div id="summaryItemsList" class="summary-list"></div>
-
-      <div class="summary-footer">
-        <div class="totals-box" id="summaryTotalsBox">
-          <div class="tot-row">
-            <span id="sumRow1Label">จำนวนรายการรวม</span>
-            <span id="sumRow1Value">0 ชิ้น</span>
-          </div>
-          <div class="tot-row grand">
-            <span id="sumRow2Label">ยอดชำระสุทธิ</span>
-            <span id="sumRow2Value">฿0</span>
-          </div>
-        </div>
-
-        <div class="action-stack">
-          <button type="button" id="primaryConfirmBtn" class="btn btn-primary">
-            ✓ ยืนยันออกบิลและพิมพ์ใบเสร็จ
-          </button>
-          <button type="button" id="clearSummaryBtn" class="btn btn-secondary" title="ล้างรายการ">
-            ล้าง
-          </button>
-        </div>
-      </div>
-    </aside>
-  </div>
-
-  <!-- Step 1: Confirmation Modal -->
-  <div class="modal-backdrop" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="confirmModalTitle">
-    <div class="modal-card">
-      <h3 class="modal-title" id="confirmModalTitle">ยืนยันการทำรายการ</h3>
-      <p style="margin:0; font-size:0.85rem; color:var(--muted);" id="confirmModalSubtitle">
-        โปรดตรวจสอบความถูกต้องของรายการก่อนกดยืนยัน
-      </p>
-      <div class="modal-body" id="confirmModalBody"></div>
-      <div class="modal-actions">
-        <button type="button" id="cancelModalBtn" class="btn btn-secondary">ยกเลิก / กลับไปแก้ไข</button>
-        <button type="button" id="commitModalBtn" class="btn btn-primary">✓ ยืนยันทำรายการทันที</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Step 2: Printable Receipt Modal -->
-  <div class="modal-backdrop" id="receiptPrintModal" role="dialog" aria-modal="true" aria-labelledby="receiptModalTitle">
-    <div class="modal-card receipt-modal-card">
-      <div class="no-print" style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
-        <h3 class="modal-title" id="receiptModalTitle" style="margin:0;">✅ ออกบิลและตัดสต็อกสำเร็จ (พร้อมพิมพ์ใบเสร็จ)</h3>
-        <span class="summary-badge" id="receiptBillBadge">BILL-001</span>
-      </div>
-
-      <div class="print-format-bar no-print">
-        <span style="font-size:0.8rem; font-weight:700;">เลือกรูปแบบกระดาษสำหรับปริ้นเตอร์:</span>
-        <div class="format-options" role="group" aria-label="รูปแบบกระดาษ">
-          <button type="button" class="format-btn" data-print-format="a5">📄 กระดาษ A5</button>
-          <button type="button" class="format-btn active" data-print-format="a4-dup">📑 A4 (ต้นฉบับ+สำเนา)</button>
-          <button type="button" class="format-btn" data-print-format="80mm">🧾 สลิป 80mm</button>
-        </div>
-      </div>
-
-      <div id="receiptPaperContent" class="receipt-paper"></div>
-
-      <div class="no-print" style="font-size:0.75rem; color:var(--muted); margin-bottom:12px;">
-        💡 หมายเหตุ: หากต้องการทดสอบสั่งพิมพ์ออกเครื่องปริ้นเตอร์จริง สามารถกดปุ่ม <strong>Download</strong> มุมขวาบนเพื่อเปิดไฟล์บนเบราว์เซอร์คอมพิวเตอร์โดยตรง
-      </div>
-
-      <div class="modal-actions no-print">
-        <button type="button" id="copyReceiptTextBtn" class="btn btn-secondary">คัดลอกข้อความบิล</button>
-        <button type="button" id="triggerPrintBtn" class="btn btn-secondary">🖨️ สั่งพิมพ์ใบเสร็จ (Print)</button>
-        <button type="button" id="closeReceiptModalBtn" class="btn btn-primary">ปิดหน้าต่าง</button>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    const categories = [
-      {
-        id: 'CAT-HOOK',
-        name: 'ตัวเบ็ดตกปลา',
-        desc: 'เบ็ดไดม่อน เบ็ดดำ (การ์ดรวมชิ้นเล็ก + แพ็คใหญ่)',
-        bg: '#e0f2fe',
-        color: '#0284c7',
-        svg: `<svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3v12a4 4 0 0 1-8 0V9"/><polyline points="11 12 8 9 5 12"/><circle cx="16" cy="3" r="1"/></svg>`
-      },
-      {
-        id: 'CAT-LINE',
-        name: 'สายเอ็น & สายพีอี',
-        desc: 'สายเอ็นโหลด สายฟลูโอโร สายถัก PE',
-        bg: '#dcfce7',
-        color: '#16a34a',
-        svg: `<svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="3" x2="12" y2="8"/><line x1="12" y1="16" x2="12" y2="21"/></svg>`
-      },
-      {
-        id: 'CAT-FLOAT',
-        name: 'ทุ่น & ตะกั่วถ่วง',
-        desc: 'ทุ่นชิงหลิว ทุ่นลอย ตะกั่วฟิวส์',
-        bg: '#fef3c7',
-        color: '#d97706',
-        svg: `<svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 12c0 3.5-2.2 6-5 6s-5-2.5-5-6 2.2-6 5-6 5 2.5 5 6z"/></svg>`
-      },
-      {
-        id: 'CAT-BAIT',
-        name: 'เหยื่อตกปลา & หัวเชื้อ',
-        desc: 'รำบ่ม เหยื่อผง หัวเชื้อกลิ่นต่างๆ',
-        bg: '#fce7f3',
-        color: '#db2777',
-        svg: `<svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#db2777" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12l2 6v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8z"/><line x1="4" y1="8" x2="20" y2="8"/></svg>`
-      },
-      {
-        id: 'CAT-COFFEE',
-        name: 'เมล็ดกาแฟ & เครื่องดื่ม',
-        desc: 'กาแฟคั่วบด อาราบิก้า น้ำเชื่อม',
-        bg: '#ede9fe',
-        color: '#7c3aed',
-        svg: `<svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" y1="2" x2="6" y2="4"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="14" y1="2" x2="14" y2="4"/></svg>`
-      },
-      {
-        id: 'CAT-EQUIP',
-        name: 'อุปกรณ์เสริม & จิปาถะ',
-        desc: 'แก้วดริป กระดาษกรอง กิ๊บลูกหมุน',
-        bg: '#ffedd5',
-        color: '#ea580c',
-        svg: `<svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>`
-      }
-    ];
-
-    // Products Dataset including both Small Piece SKUs and Big Pack (-PK) SKUs.
-    // The UI automatically merges each Base SKU + its "-PK" SKU into ONE single card (defaulting to Small Piece).
-    const products = [
-      // CAT-HOOK (Small pieces + paired -PK big packs)
-      { sku: 'HK-D01', catId: 'CAT-HOOK', name: 'เบ็ดไดม่อน เบอร์ 1', spec: 'เบอร์ 1', price: 45, stock: 20, unit: 'กล่อง' },
-      { sku: 'HK-D01-PK', catId: 'CAT-HOOK', name: 'เบ็ดไดม่อน เบอร์ 1 (ยกมัด 10 กล่อง)', spec: 'มัด×10', price: 420, stock: 5, unit: 'มัด', packSize: 10 },
-      { sku: 'HK-D02', catId: 'CAT-HOOK', name: 'เบ็ดไดม่อน เบอร์ 2', spec: 'เบอร์ 2', price: 45, stock: 22, unit: 'กล่อง' },
-      { sku: 'HK-D02-PK', catId: 'CAT-HOOK', name: 'เบ็ดไดม่อน เบอร์ 2 (ยกมัด 10 กล่อง)', spec: 'มัด×10', price: 420, stock: 4, unit: 'มัด', packSize: 10 },
-      { sku: 'HK-D03', catId: 'CAT-HOOK', name: 'เบ็ดไดม่อน เบอร์ 3', spec: 'เบอร์ 3', price: 45, stock: 24, unit: 'กล่อง' },
-      { sku: 'HK-D03-PK', catId: 'CAT-HOOK', name: 'เบ็ดไดม่อน เบอร์ 3 (ยกมัด 10 กล่อง)', spec: 'มัด×10', price: 420, stock: 6, unit: 'มัด', packSize: 10 },
-      { sku: 'HK-D04', catId: 'CAT-HOOK', name: 'เบ็ดไดม่อน เบอร์ 4', spec: 'เบอร์ 4', price: 45, stock: 19, unit: 'กล่อง' },
-      { sku: 'HK-D04-PK', catId: 'CAT-HOOK', name: 'เบ็ดไดม่อน เบอร์ 4 (ยกมัด 10 กล่อง)', spec: 'มัด×10', price: 420, stock: 3, unit: 'มัด', packSize: 10 },
-      { sku: 'HK-D05', catId: 'CAT-HOOK', name: 'เบ็ดไดม่อน เบอร์ 5', spec: 'เบอร์ 5', price: 45, stock: 18, unit: 'กล่อง' },
-      { sku: 'HK-D05-PK', catId: 'CAT-HOOK', name: 'เบ็ดไดม่อน เบอร์ 5 (ยกมัด 10 กล่อง)', spec: 'มัด×10', price: 420, stock: 7, unit: 'มัด', packSize: 10 },
-      { sku: 'HK-D06', catId: 'CAT-HOOK', name: 'เบ็ดไดม่อน เบอร์ 6', spec: 'เบอร์ 6', price: 50, stock: 16, unit: 'กล่อง' },
-      { sku: 'HK-D06-PK', catId: 'CAT-HOOK', name: 'เบ็ดไดม่อน เบอร์ 6 (ยกมัด 10 กล่อง)', spec: 'มัด×10', price: 470, stock: 4, unit: 'มัด', packSize: 10 },
-      { sku: 'HK-D07', catId: 'CAT-HOOK', name: 'เบ็ดไดม่อน เบอร์ 7', spec: 'เบอร์ 7', price: 50, stock: 15, unit: 'กล่อง' },
-      { sku: 'HK-D08', catId: 'CAT-HOOK', name: 'เบ็ดไดม่อน เบอร์ 8', spec: 'เบอร์ 8', price: 55, stock: 12, unit: 'กล่อง' },
-      { sku: 'HK-B01', catId: 'CAT-HOOK', name: 'เบ็ดดำ เบอร์ 1', spec: 'เบอร์ 1', price: 35, stock: 25, unit: 'กล่อง' },
-      { sku: 'HK-B02', catId: 'CAT-HOOK', name: 'เบ็ดดำ เบอร์ 2', spec: 'เบอร์ 2', price: 35, stock: 28, unit: 'กล่อง' },
-      { sku: 'HK-B03', catId: 'CAT-HOOK', name: 'เบ็ดดำ เบอร์ 3', spec: 'เบอร์ 3', price: 35, stock: 32, unit: 'กล่อง' },
-      { sku: 'HK-B04', catId: 'CAT-HOOK', name: 'เบ็ดดำ เบอร์ 4', spec: 'เบอร์ 4', price: 35, stock: 30, unit: 'กล่อง' },
-      { sku: 'HK-B04-PK', catId: 'CAT-HOOK', name: 'เบ็ดดำ เบอร์ 4 (ยกมัด 10 กล่อง)', spec: 'มัด×10', price: 320, stock: 5, unit: 'มัด', packSize: 10 },
-      { sku: 'HK-B05', catId: 'CAT-HOOK', name: 'เบ็ดดำ เบอร์ 5', spec: 'เบอร์ 5', price: 35, stock: 22, unit: 'กล่อง' },
-      { sku: 'HK-B05-PK', catId: 'CAT-HOOK', name: 'เบ็ดดำ เบอร์ 5 (ยกมัด 10 กล่อง)', spec: 'มัด×10', price: 320, stock: 8, unit: 'มัด', packSize: 10 },
-      { sku: 'HK-B06', catId: 'CAT-HOOK', name: 'เบ็ดดำ เบอร์ 6', spec: 'เบอร์ 6', price: 40, stock: 12, unit: 'กล่อง' },
-      { sku: 'HK-B07', catId: 'CAT-HOOK', name: 'เบ็ดดำ เบอร์ 7', spec: 'เบอร์ 7', price: 40, stock: 14, unit: 'กล่อง' },
-
-      // CAT-LINE
-      { sku: 'LN-10', catId: 'CAT-LINE', name: 'สายเอ็นโหลด 10 ปอนด์', spec: '10 lb', price: 120, stock: 14, unit: 'ม้วน' },
-      { sku: 'LN-10-PK', catId: 'CAT-LINE', name: 'สายเอ็นโหลด 10 ปอนด์ (ยกแพ็ค 6 ม้วน)', spec: 'แพ็ค×6', price: 660, stock: 4, unit: 'แพ็ค', packSize: 6 },
-      { sku: 'LN-15', catId: 'CAT-LINE', name: 'สายเอ็นโหลด 15 ปอนด์', spec: '15 lb', price: 130, stock: 10, unit: 'ม้วน' },
-      { sku: 'LN-15-PK', catId: 'CAT-LINE', name: 'สายเอ็นโหลด 15 ปอนด์ (ยกแพ็ค 6 ม้วน)', spec: 'แพ็ค×6', price: 720, stock: 3, unit: 'แพ็ค', packSize: 6 },
-      { sku: 'LN-20', catId: 'CAT-LINE', name: 'สายเอ็นโหลด 20 ปอนด์', spec: '20 lb', price: 140, stock: 8, unit: 'ม้วน' },
-      { sku: 'PE-02', catId: 'CAT-LINE', name: 'สายถัก PE ถัก 8 เบอร์ 2.0', spec: 'PE 2.0', price: 280, stock: 9, unit: 'ม้วน' },
-      { sku: 'PE-03', catId: 'CAT-LINE', name: 'สายถัก PE ถัก 8 เบอร์ 3.0', spec: 'PE 3.0', price: 290, stock: 7, unit: 'ม้วน' },
-      { sku: 'FL-25', catId: 'CAT-LINE', name: 'สายช็อคลีด ฟลูโอโร 25 lb', spec: '25 lb', price: 180, stock: 11, unit: 'ม้วน' },
-
-      // CAT-FLOAT
-      { sku: 'FT-01', catId: 'CAT-FLOAT', name: 'ทุ่นชิงหลิว นาโน เบอร์ 1', spec: 'เบอร์ 1', price: 85, stock: 16, unit: 'ดอก' },
-      { sku: 'FT-01-PK', catId: 'CAT-FLOAT', name: 'ทุ่นชิงหลิว นาโน เบอร์ 1 (ยกหลอด 10 ดอก)', spec: 'หลอด×10', price: 780, stock: 3, unit: 'หลอด', packSize: 10 },
-      { sku: 'FT-02', catId: 'CAT-FLOAT', name: 'ทุ่นชิงหลิว นาโน เบอร์ 2', spec: 'เบอร์ 2', price: 85, stock: 19, unit: 'ดอก' },
-      { sku: 'FT-03', catId: 'CAT-FLOAT', name: 'ทุ่นชิงหลิว นาโน เบอร์ 3', spec: 'เบอร์ 3', price: 90, stock: 14, unit: 'ดอก' },
-      { sku: 'LD-S1', catId: 'CAT-FLOAT', name: 'ตะกั่วแผ่นฟิวส์ อย่างนิ่ม', spec: 'แผ่นนิ่ม', price: 25, stock: 40, unit: 'ม้วน' },
-      { sku: 'LD-B2', catId: 'CAT-FLOAT', name: 'ตะกั่วเม็ดกลม เบอร์ 2', spec: 'เบอร์ 2', price: 30, stock: 28, unit: 'ซอง' },
-      { sku: 'ST-01', catId: 'CAT-FLOAT', name: 'สต็อปเปอร์ยาง ไซส์ M', spec: 'Size M', price: 20, stock: 50, unit: 'พวง' },
-
-      // CAT-BAIT
-      { sku: 'BT-01', catId: 'CAT-BAIT', name: 'รำบ่มหอมพิเศษ สูตรต้นตำรับ', spec: 'สูตรดั้งเดิม', price: 40, stock: 35, unit: 'ถุง' },
-      { sku: 'BT-01-PK', catId: 'CAT-BAIT', name: 'รำบ่มหอมพิเศษ (ยกลัง 12 ถุง)', spec: 'ลัง×12', price: 430, stock: 6, unit: 'ลัง', packSize: 12 },
-      { sku: 'BT-02', catId: 'CAT-BAIT', name: 'เหยื่อผงขนมปังป่น สูตรเข้มข้น', spec: 'ปังป่น', price: 35, stock: 28, unit: 'ถุง' },
-      { sku: 'BT-03', catId: 'CAT-BAIT', name: 'หัวเชื้อกลิ่นนมเนยครีม', spec: 'นมเนย', price: 60, stock: 20, unit: 'ขวด' },
-      { sku: 'BT-03-PK', catId: 'CAT-BAIT', name: 'หัวเชื้อกลิ่นนมเนยครีม (ยกโหล 12 ขวด)', spec: 'โหล×12', price: 650, stock: 4, unit: 'โหล', packSize: 12 },
-      { sku: 'BT-04', catId: 'CAT-BAIT', name: 'หัวเชื้อกลิ่นใบเตยหอม', spec: 'ใบเตย', price: 60, stock: 18, unit: 'ขวด' },
-      { sku: 'BT-05', catId: 'CAT-BAIT', name: 'เหยื่อตกปลานิล ซองแดง', spec: 'ปลานิล', price: 25, stock: 45, unit: 'ซอง' },
-      { sku: 'BT-06', catId: 'CAT-BAIT', name: 'เม็ดโฟมตกปลา คละสี', spec: 'คละสี', price: 20, stock: 32, unit: 'ซอง' },
-
-      // CAT-COFFEE
-      { sku: 'CF-001', catId: 'CAT-COFFEE', name: 'กาแฟคั่วบด ดอยช้าง 250g', spec: '250g', price: 250, stock: 20, unit: 'ถุง' },
-      { sku: 'CF-001-PK', catId: 'CAT-COFFEE', name: 'กาแฟคั่วบด ดอยช้าง (ยกลัง 10 ถุง)', spec: 'ลัง×10', price: 2300, stock: 4, unit: 'ลัง', packSize: 10 },
-      { sku: 'CF-002', catId: 'CAT-COFFEE', name: 'เมล็ดกาแฟอาราบิก้า 100%', spec: 'Arabica', price: 350, stock: 15, unit: 'ถุง' },
-      { sku: 'CF-003', catId: 'CAT-COFFEE', name: 'กาแฟคั่วเข้ม เอสเพรสโซ่', spec: 'เข้ม', price: 220, stock: 18, unit: 'ถุง' },
-      { sku: 'CF-004', catId: 'CAT-COFFEE', name: 'ชาไทยต้นตำรับ ชนิดผง', spec: 'ชาไทย', price: 140, stock: 22, unit: 'ถุง' },
-      { sku: 'CF-005', catId: 'CAT-COFFEE', name: 'ผงมัทฉะเกรดพรีเมียม', spec: 'Matcha', price: 290, stock: 10, unit: 'ถุง' },
-      { sku: 'CF-006', catId: 'CAT-COFFEE', name: 'น้ำเชื่อมวานิลลา 750ml', spec: '750ml', price: 180, stock: 12, unit: 'ขวด' },
-
-      // CAT-EQUIP
-      { sku: 'EQ-001', catId: 'CAT-EQUIP', name: 'แก้วดริปกาแฟ เซรามิก', spec: 'เซรามิก', price: 350, stock: 10, unit: 'ใบ' },
-      { sku: 'EQ-002', catId: 'CAT-EQUIP', name: 'กระดาษกรองกาแฟ เบอร์ 02', spec: 'เบอร์ 02', price: 120, stock: 25, unit: 'กล่อง' },
-      { sku: 'EQ-003', catId: 'CAT-EQUIP', name: 'กาดริปกาแฟ สแตนเลส', spec: '600ml', price: 650, stock: 5, unit: 'ใบ' },
-      { sku: 'EQ-004', catId: 'CAT-EQUIP', name: 'ลูกหมุนกิ๊บ เบอร์ 8', spec: 'เบอร์ 8', price: 30, stock: 40, unit: 'ซอง' },
-      { sku: 'EQ-004-PK', catId: 'CAT-EQUIP', name: 'ลูกหมุนกิ๊บ เบอร์ 8 (ยกมัด 12 ซอง)', spec: 'มัด×12', price: 300, stock: 6, unit: 'มัด', packSize: 12 },
-      { sku: 'EQ-005', catId: 'CAT-EQUIP', name: 'กรรไกรตัดสาย PE พกพา', spec: 'สแตนเลส', price: 75, stock: 15, unit: 'อัน' },
-      { sku: 'EQ-006', catId: 'CAT-EQUIP', name: 'กล่องใส่ตัวเบ็ด กันน้ำ', spec: 'กันน้ำ', price: 150, stock: 9, unit: 'ใบ' }
-    ];
-
-    let activeTab = 'SALE'; // 'SALE' | 'STOCK'
-    let selectedCategoryId = null;
-    let selectedEditSku = null;
-    let editorSubMode = 'RESTOCK'; // 'RESTOCK' | 'UNPACK'
-    let billCounter = 1;
-    let lastCompletedBill = null;
-    let selectedPrintFormat = 'a4-dup';
-
-    // Track per-card unit selection: key = baseSku, value = 'PIECE' (default) | 'PACK'
-    const cardUnitSelection = {};
-
-    let saleCart = [];
-    let stockUpdateQueue = []; // items can be { type:'RESTOCK', sku, addQty, newPrice } or { type:'UNPACK', packSku, pieceSku, unpackCount, packSize }
-
-    function isPackSku(sku) {
-      return /-PK$/i.test(sku);
-    }
-
-    function getBaseSku(sku) {
-      return String(sku || '').replace(/-PK$/i, '');
-    }
-
-    // Group products in a category so each base SKU + its "-PK" variant share ONE single card
-    function getUnifiedCardsForCategory(catId) {
-      const catProducts = products.filter(p => p.catId === catId);
-      const baseMap = new Map();
-
-      catProducts.forEach(p => {
-        const base = getBaseSku(p.sku);
-        if (!baseMap.has(base)) {
-          baseMap.set(base, { baseSku: base, pieceProduct: null, packProduct: null });
-        }
-        const entry = baseMap.get(base);
-        if (isPackSku(p.sku)) {
-          entry.packProduct = p;
-        } else {
-          entry.pieceProduct = p;
-        }
-      });
-
-      return Array.from(baseMap.values());
-    }
-
-    function buildInvoiceCopyHtml(bill, copyLabel, isCompact80mm) {
-      const rowsHtml = bill.items.map((item, idx) => `
-        <tr>
-          <td>${idx + 1}. ${item.name}</td>
-          <td class="num">${item.qty} ${item.unit}</td>
-          <td class="num">฿${item.price.toLocaleString()}</td>
-          <td class="num" style="font-weight:700;">฿${item.lineTotal.toLocaleString()}</td>
-        </tr>
-      `).join('');
-
-      return `
-        <div class="invoice-sheet ${isCompact80mm ? 'format-80mm' : ''}">
-          <div class="invoice-header">
-            <div>
-              <div style="font-weight:700; font-size:0.95rem;">บิลเงินสด / ใบเสร็จรับเงิน</div>
-              <div style="color:#475569; font-size:0.75rem;">เลขที่: <strong>${bill.billNo}</strong> • วันที่: ${bill.dateStr} เวลา ${bill.timeStr} น.</div>
-              <div style="color:#0f172a; font-size:0.8125rem; margin-top:2px;">ลูกค้า: <strong>ลูกค้าทั่วไป</strong></div>
-            </div>
-            <span class="invoice-copy-badge">${copyLabel}</span>
-          </div>
-          <table class="invoice-table">
-            <thead>
-              <tr>
-                <th>รายการสินค้า</th>
-                <th class="num">จำนวน</th>
-                <th class="num">ราคา/หน่วย</th>
-                <th class="num">รวมเงิน</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${rowsHtml}
-            </tbody>
-          </table>
-          <div class="invoice-totals">
-            <div style="font-size:0.8rem; color:#475569;">จำนวนรวม: ${bill.totalQty} หน่วย</div>
-            <div style="font-size:0.95rem; font-weight:700; border-top:1px solid #0f172a; padding-top:4px; margin-top:2px;">
-              ยอดชำระสุทธิ: ฿${bill.netTotal.toLocaleString()}
-            </div>
-          </div>
-          ${isCompact80mm ? '' : `
-            <div class="invoice-signatures">
-              <div class="sig-box">
-                <div class="sig-line"></div>
-                <div>ผู้รับสินค้า / ลูกค้า</div>
-              </div>
-              <div class="sig-box">
-                <div class="sig-line"></div>
-                <div>ผู้รับเงิน / ร้านค้า</div>
-              </div>
-            </div>
-          `}
-        </div>
-      `;
-    }
-
-    function renderPrintableReceipt() {
-      if (!lastCompletedBill) return;
-      document.getElementById('receiptBillBadge').textContent = lastCompletedBill.billNo;
-      const paperEl = document.getElementById('receiptPaperContent');
-      if (selectedPrintFormat === 'a4-dup') {
-        paperEl.innerHTML = `
-          ${buildInvoiceCopyHtml(lastCompletedBill, 'ต้นฉบับ (สำหรับลูกค้า)', false)}
-          <div class="cut-divider">✂️ เส้นประสำหรับฉีกแบ่งครึ่งกระดาษ A4 (ครึ่งบน: ลูกค้า / ครึ่งล่าง: ร้านค้า)</div>
-          ${buildInvoiceCopyHtml(lastCompletedBill, 'สำเนา (สำหรับร้านค้า)', false)}
-        `;
-      } else if (selectedPrintFormat === 'a5') {
-        paperEl.innerHTML = buildInvoiceCopyHtml(lastCompletedBill, 'ต้นฉบับใบเสร็จ (ขนาด A5)', false);
-      } else {
-        paperEl.innerHTML = buildInvoiceCopyHtml(lastCompletedBill, 'สลิปใบเสร็จ 80mm', true);
-      }
-    }
-
-    function renderCategoryGrid() {
-      const container = document.getElementById('categoryGridView');
-      container.innerHTML = categories.map(cat => {
-        const unifiedCards = getUnifiedCardsForCategory(cat.id);
-        return `
-          <div class="category-card" data-cat-id="${cat.id}">
-            <div class="cat-illust" style="background:${cat.bg}; color:${cat.color};">
-              ${cat.svg}
-            </div>
-            <div>
-              <h2 class="cat-name">${cat.name}</h2>
-              <p class="cat-meta">${cat.desc} (${unifiedCards.length} การ์ดสินค้า)</p>
-            </div>
-          </div>
-        `;
-      }).join('');
-
-      container.querySelectorAll('[data-cat-id]').forEach(card => {
-        card.addEventListener('click', () => {
-          openCategory(card.getAttribute('data-cat-id'));
-        });
-      });
-    }
-
-    function openCategory(catId) {
-      selectedCategoryId = catId;
-      const cat = categories.find(c => c.id === catId);
-      const unifiedCount = getUnifiedCardsForCategory(catId).length;
-      document.getElementById('categoryGridView').hidden = true;
-      document.getElementById('productGridView').hidden = false;
-      document.getElementById('backToCategoriesBtn').hidden = false;
-      document.getElementById('stageHeading').textContent = cat ? `${cat.name} (${unifiedCount} การ์ดรวมหน่วย)` : 'รายการสินค้า';
-      document.getElementById('stageSubHint').textContent = activeTab === 'SALE'
-        ? 'ค่าเริ่มต้นเป็น "ชิ้นเล็ก" (คลิกปุ่มมุมซ้ายบนของการ์ดหากต้องการสลับเป็นแพ็คใหญ่)'
-        : 'คลิกที่การ์ดเพื่อเพิ่มสต็อก/ปรับราคา หรือกดแกะแพ็คใหญ่เป็นชิ้นเล็ก';
-
-      renderProductGrid();
-    }
-
-    function closeCategoryToHome() {
-      selectedCategoryId = null;
-      selectedEditSku = null;
-      document.getElementById('categoryGridView').hidden = false;
-      document.getElementById('productGridView').hidden = true;
-      document.getElementById('backToCategoriesBtn').hidden = true;
-      document.getElementById('stockEditForm').hidden = true;
-      document.getElementById('stageHeading').textContent = activeTab === 'SALE'
-        ? 'เลือกหมวดหมู่สินค้า (คลิกที่รูปเพื่อดูรายการสินค้า)'
-        : 'เลือกหมวดหมู่สินค้าที่ต้องการเพิ่มสต็อก / ปรับราคา / แกะแพ็ค';
-      document.getElementById('stageSubHint').textContent = 'รวมแพ็คใหญ่และชิ้นเล็กไว้ในการ์ดเดียว (ตั้งค่าเริ่มต้นเป็นชิ้นเล็ก)';
-    }
-
-    function renderProductGrid() {
-      if (!selectedCategoryId) return;
-      const cat = categories.find(c => c.id === selectedCategoryId);
-      const unifiedList = getUnifiedCardsForCategory(selectedCategoryId);
-      const container = document.getElementById('productGridContainer');
-
-      container.innerHTML = unifiedList.map(group => {
-        const pieceProd = group.pieceProduct || group.packProduct;
-        const packProd = group.packProduct;
-        const hasBoth = Boolean(group.pieceProduct && group.packProduct);
-
-        // Default is always PIECE ('ชิ้นเล็ก') unless user toggled this card to PACK
-        const currentUnitMode = (hasBoth && cardUnitSelection[group.baseSku] === 'PACK') ? 'PACK' : 'PIECE';
-        const activeProd = currentUnitMode === 'PACK' && packProd ? packProd : pieceProd;
-        const isSelectedForEdit = activeTab === 'STOCK' && selectedEditSku && getBaseSku(selectedEditSku) === group.baseSku;
-        const isLow = activeProd.stock <= 5;
-
-        const toggleHtml = hasBoth ? `
-          <div class="unit-toggle-pill" data-toggle-base="${group.baseSku}">
-            <button type="button" class="unit-opt-btn ${currentUnitMode === 'PIECE' ? 'active-piece' : ''}" data-unit-mode="PIECE" title="ขาย/จัดการแบบชิ้นเล็ก (ค่าเริ่มต้น)">
-              ${pieceProd.unit}
-            </button>
-            <button type="button" class="unit-opt-btn ${currentUnitMode === 'PACK' ? 'active-pack' : ''}" data-unit-mode="PACK" title="สลับเป็นแพ็คใหญ่ (${packProd.unit})">
-              📦 ${packProd.unit}
-            </button>
-          </div>
-        ` : '';
-
-        const packSubHint = hasBoth
-          ? (currentUnitMode === 'PIECE'
-              ? `<div class="prod-sub-pack-hint">มีแพ็คใหญ่: เหลือ ${packProd.stock} ${packProd.unit} (฿${packProd.price})</div>`
-              : `<div class="prod-sub-pack-hint" style="color:var(--pack); font-weight:600;">1 ${packProd.unit} = ${packProd.packSize || 10} ${pieceProd.unit} (ชิ้นเล็กเหลือ ${pieceProd.stock})</div>`)
-          : `<div class="prod-sub-pack-hint">หน่วยขาย: ${activeProd.unit}</div>`;
-
-        return `
-          <div class="product-card ${currentUnitMode === 'PACK' ? 'pack-mode-active' : ''} ${activeTab === 'STOCK' ? 'stock-edit-card' : ''} ${isSelectedForEdit ? 'selected-for-edit' : ''}" data-card-sku="${activeProd.sku}" data-base-sku="${group.baseSku}">
-            ${toggleHtml}
-
-            <!-- Remaining Stock at Top-Right Corner -->
-            <span class="prod-stock-badge ${currentUnitMode === 'PACK' ? 'pack-stock' : ''} ${isLow ? 'low' : ''}">
-              เหลือ ${activeProd.stock} ${activeProd.unit}
-            </span>
-
-            <!-- Product Image Centered in the Middle -->
-            <div class="prod-center-image" style="background:${cat ? cat.bg : '#f1f5f9'};">
-              ${cat ? cat.svg : ''}
-              ${activeProd.spec ? `<span class="prod-spec-pill ${currentUnitMode === 'PACK' ? 'pack-pill' : ''}">${activeProd.spec}</span>` : ''}
-            </div>
-
-            <!-- Product Name & Details at the Bottom -->
-            <div class="prod-bottom-info">
-              <h3 class="prod-name" title="${activeProd.name}">${pieceProd.name}</h3>
-              ${packSubHint}
-              <div class="prod-meta-row">
-                <span class="prod-sku">${activeProd.sku}</span>
-                <span class="prod-price ${currentUnitMode === 'PACK' ? 'pack-price' : ''}">฿${activeProd.price.toLocaleString()} / ${activeProd.unit}</span>
-              </div>
-            </div>
-          </div>
-        `;
-      }).join('');
-
-      // Bind unit switcher buttons inside card without triggering card add-to-bill click
-      container.querySelectorAll('[data-toggle-base] .unit-opt-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const baseSku = btn.closest('[data-toggle-base]').getAttribute('data-toggle-base');
-          const targetMode = btn.getAttribute('data-unit-mode');
-          cardUnitSelection[baseSku] = targetMode;
-          renderProductGrid();
-          // If this card is currently open in Stock Editor, update editor target SKU too
-          if (activeTab === 'STOCK' && selectedEditSku && getBaseSku(selectedEditSku) === baseSku) {
-            const targetSku = targetMode === 'PACK' ? `${baseSku}-PK` : baseSku;
-            handleProductSelection(targetSku);
-          }
-        });
-      });
-
-      // Bind main card click
-      container.querySelectorAll('[data-card-sku]').forEach(card => {
-        card.addEventListener('click', () => {
-          const sku = card.getAttribute('data-card-sku');
-          handleProductSelection(sku);
-        });
-      });
-    }
-
-    function updateUnpackPreviewText() {
-      if (!selectedEditSku) return;
-      const baseSku = getBaseSku(selectedEditSku);
-      const pieceProd = products.find(p => p.sku === baseSku);
-      const count = Math.max(1, Number(document.getElementById('unpackPackCountInput').value) || 1);
-      const ratio = Math.max(1, Number(document.getElementById('unpackRatioInput').value) || 10);
-      const totalPieces = count * ratio;
-      document.getElementById('unpackResultPreview').textContent = `= ได้ +${totalPieces} ${pieceProd ? pieceProd.unit : 'ชิ้น'}`;
-    }
-
-    function setEditorSubMode(mode) {
-      editorSubMode = mode;
-      const restockBtn = document.getElementById('modeRestockTabBtn');
-      const unpackBtn = document.getElementById('modeUnpackTabBtn');
-      const restockGroup = document.getElementById('restockFieldsGroup');
-      const unpackGroup = document.getElementById('unpackFieldsGroup');
-
-      if (mode === 'UNPACK') {
-        restockBtn.classList.remove('active');
-        unpackBtn.classList.add('active');
-        restockGroup.hidden = true;
-        unpackGroup.hidden = false;
-        updateUnpackPreviewText();
-      } else {
-        unpackBtn.classList.remove('active');
-        restockBtn.classList.add('active');
-        unpackGroup.hidden = true;
-        restockGroup.hidden = false;
-      }
-    }
-
-    function handleProductSelection(sku) {
-      const product = products.find(p => p.sku === sku);
-      if (!product) return;
-
-      if (activeTab === 'SALE') {
-        addToSaleCart(sku, 1);
-      } else {
-        if (selectedCategoryId !== product.catId) {
-          openCategory(product.catId);
-        }
-        selectedEditSku = sku;
-        const baseSku = getBaseSku(sku);
-        const pieceProd = products.find(p => p.sku === baseSku);
-        const packProd = products.find(p => p.sku === `${baseSku}-PK`);
-
-        renderProductGrid();
-        const form = document.getElementById('stockEditForm');
-        form.hidden = false;
-
-        document.getElementById('editingProductLabel').textContent =
-          `${product.name} (คงเหลือ ${product.stock} ${product.unit} • ฿${product.price})`;
-
-        // Show or hide the Unpack tab depending on whether this item has a paired pack SKU
-        const unpackTabBtn = document.getElementById('modeUnpackTabBtn');
-        if (packProd && pieceProd) {
-          unpackTabBtn.hidden = false;
-          document.getElementById('unpackRatioInput').value = packProd.packSize || 10;
-          document.getElementById('unpackPackCountInput').value = 1;
-          updateUnpackPreviewText();
-        } else {
-          unpackTabBtn.hidden = true;
-          setEditorSubMode('RESTOCK');
-        }
-
-        const existingRestock = stockUpdateQueue.find(q => q.type === 'RESTOCK' && q.sku === sku);
-        document.getElementById('addStockQtyInput').value = existingRestock ? existingRestock.addQty : 10;
-        document.getElementById('newPriceInput').value = existingRestock ? existingRestock.newPrice : product.price;
-      }
-    }
-
-    function addToSaleCart(sku, delta) {
-      const product = products.find(p => p.sku === sku);
-      if (!product) return;
-
-      const existing = saleCart.find(i => i.sku === sku);
-      const currentQty = existing ? existing.qty : 0;
-      const nextQty = currentQty + delta;
-
-      if (nextQty > product.stock) return;
-
-      if (nextQty <= 0) {
-        saleCart = saleCart.filter(i => i.sku !== sku);
-      } else if (existing) {
-        existing.qty = nextQty;
-      } else {
-        saleCart.push({ sku, qty: delta });
-      }
-      renderRightSummary();
-    }
-
-    document.getElementById('modeRestockTabBtn').addEventListener('click', () => setEditorSubMode('RESTOCK'));
-    document.getElementById('modeUnpackTabBtn').addEventListener('click', () => setEditorSubMode('UNPACK'));
-    document.getElementById('unpackPackCountInput').addEventListener('input', updateUnpackPreviewText);
-    document.getElementById('unpackRatioInput').addEventListener('input', updateUnpackPreviewText);
-
-    document.getElementById('stockEditForm').addEventListener('submit', (e) => {
-      e.preventDefault();
-      if (!selectedEditSku) return;
-
-      if (editorSubMode === 'UNPACK') {
-        const baseSku = getBaseSku(selectedEditSku);
-        const pieceProd = products.find(p => p.sku === baseSku);
-        const packProd = products.find(p => p.sku === `${baseSku}-PK`);
-        if (!pieceProd || !packProd) return;
-
-        const unpackCount = Math.max(1, Number(document.getElementById('unpackPackCountInput').value) || 1);
-        const packSize = Math.max(1, Number(document.getElementById('unpackRatioInput').value) || 10);
-        if (unpackCount > packProd.stock) return;
-
-        const existingUnpack = stockUpdateQueue.find(q => q.type === 'UNPACK' && q.packSku === packProd.sku);
-        if (existingUnpack) {
-          existingUnpack.unpackCount = unpackCount;
-          existingUnpack.packSize = packSize;
-        } else {
-          stockUpdateQueue.push({
-            type: 'UNPACK',
-            packSku: packProd.sku,
-            pieceSku: pieceProd.sku,
-            unpackCount,
-            packSize
-          });
-        }
-      } else {
-        const product = products.find(p => p.sku === selectedEditSku);
-        if (!product) return;
-
-        const addQty = Math.max(0, Number(document.getElementById('addStockQtyInput').value) || 0);
-        const newPrice = Math.max(1, Number(document.getElementById('newPriceInput').value) || product.price);
-        if (addQty === 0 && newPrice === product.price) return;
-
-        const existing = stockUpdateQueue.find(q => q.type === 'RESTOCK' && q.sku === selectedEditSku);
-        if (existing) {
-          existing.addQty = addQty;
-          existing.newPrice = newPrice;
-        } else {
-          stockUpdateQueue.push({
-            type: 'RESTOCK',
-            sku: product.sku,
-            addQty,
-            newPrice
-          });
-        }
-      }
-
-      renderRightSummary();
-    });
-
-    function renderRightSummary() {
-      const titleEl = document.getElementById('summaryPanelTitle');
-      const badgeEl = document.getElementById('summaryPanelBadge');
-      const listEl = document.getElementById('summaryItemsList');
-      const row1Label = document.getElementById('sumRow1Label');
-      const row1Val = document.getElementById('sumRow1Value');
-      const row2Label = document.getElementById('sumRow2Label');
-      const row2Val = document.getElementById('sumRow2Value');
-      const confirmBtn = document.getElementById('primaryConfirmBtn');
-      const reopenBtn = document.getElementById('reopenLastReceiptBtn');
-
-      if (activeTab === 'SALE') {
-        titleEl.textContent = '🧾 สรุปรายการบิลขาย';
-        badgeEl.textContent = `BILL-${String(billCounter).padStart(3, '0')}`;
-        confirmBtn.className = 'btn btn-primary';
-        confirmBtn.textContent = '✓ ยืนยันออกบิลและพิมพ์ใบเสร็จ';
-        reopenBtn.hidden = !lastCompletedBill;
-
-        if (saleCart.length === 0) {
-          listEl.innerHTML = `
-            <div class="summary-empty">
-              ยังไม่มีรายการสินค้าในบิล<br>
-              <span style="font-size:0.75rem;">คลิกเลือกหมวดหมู่และกดที่รูปสินค้า (ค่าเริ่มต้นเป็นชิ้นเล็ก)</span>
-            </div>
-          `;
-        } else {
-          listEl.innerHTML = saleCart.map(item => {
-            const p = products.find(x => x.sku === item.sku);
-            const isPack = isPackSku(p.sku);
-            return `
-              <div class="summary-item">
-                <div class="sum-item-info">
-                  <p class="sum-item-name">${p.name}</p>
-                  <span class="sum-item-sub">${isPack ? '📦 แพ็คใหญ่' : 'ชิ้นเล็ก'} • ฿${p.price.toLocaleString()} / ${p.unit}</span>
-                </div>
-                <div class="qty-stepper">
-                  <button type="button" class="step-btn" data-step-sku="${p.sku}" data-delta="-1">-</button>
-                  <span class="step-val">${item.qty}</span>
-                  <button type="button" class="step-btn" data-step-sku="${p.sku}" data-delta="1">+</button>
-                </div>
-                <div class="sum-item-total">฿${(p.price * item.qty).toLocaleString()}</div>
-              </div>
-            `;
-          }).join('');
-
-          listEl.querySelectorAll('[data-step-sku]').forEach(btn => {
-            btn.addEventListener('click', () => {
-              addToSaleCart(btn.getAttribute('data-step-sku'), Number(btn.getAttribute('data-delta')));
-            });
-          });
-        }
-
-        const totalQty = saleCart.reduce((s, i) => s + i.qty, 0);
-        const totalAmt = saleCart.reduce((s, i) => {
-          const p = products.find(x => x.sku === i.sku);
-          return s + (p ? p.price * i.qty : 0);
-        }, 0);
-
-        row1Label.textContent = 'จำนวนสินค้ารวม';
-        row1Val.textContent = `${totalQty} หน่วย`;
-        row2Label.textContent = 'ยอดชำระสุทธิ';
-        row2Val.textContent = `฿${totalAmt.toLocaleString()}`;
-      } else {
-        titleEl.textContent = '📦 สรุปรายการรอปรับปรุง';
-        badgeEl.textContent = `${stockUpdateQueue.length} รายการ`;
-        confirmBtn.className = 'btn btn-warning';
-        confirmBtn.textContent = '✓ ยืนยันบันทึกการปรับปรุง';
-        reopenBtn.hidden = true;
-
-        if (stockUpdateQueue.length === 0) {
-          listEl.innerHTML = `
-            <div class="summary-empty">
-              ยังไม่มีรายการรอปรับปรุงสต็อก/แกะแพ็ค<br>
-              <span style="font-size:0.75rem;">คลิกการ์ดสินค้าเพื่อเพิ่มสต็อก ปรับราคา หรือสั่งแกะแพ็คใหญ่เป็นชิ้นเล็ก</span>
-            </div>
-          `;
-        } else {
-          listEl.innerHTML = stockUpdateQueue.map((q, idx) => {
-            if (q.type === 'UNPACK') {
-              const packP = products.find(x => x.sku === q.packSku);
-              const pieceP = products.find(x => x.sku === q.pieceSku);
-              const addPieces = q.unpackCount * q.packSize;
-              return `
-                <div class="summary-item" style="border-color:var(--pack-border); background:var(--pack-soft);">
-                  <div class="sum-item-info">
-                    <p class="sum-item-name">✂️ แกะแพ็ค: ${pieceP.name}</p>
-                    <span class="sum-item-sub">
-                      หัก <strong>-${q.unpackCount} ${packP.unit}</strong> → เพิ่ม <strong>+${addPieces} ${pieceP.unit}</strong>
-                    </span>
-                  </div>
-                  <button type="button" data-remove-idx="${idx}" style="border:none; background:transparent; color:var(--danger); font-size:0.72rem; cursor:pointer;">
-                    ลบออก
-                  </button>
-                </div>
-              `;
-            }
-            const p = products.find(x => x.sku === q.sku);
-            const newStock = p.stock + q.addQty;
-            return `
-              <div class="summary-item">
-                <div class="sum-item-info">
-                  <p class="sum-item-name">${p.name}</p>
-                  <span class="sum-item-sub">
-                    สต็อก: ${p.stock} → <strong>${newStock} ${p.unit}</strong> (+${q.addQty})
-                  </span>
-                </div>
-                <div style="text-align:right;">
-                  <div style="font-size:0.8rem; font-weight:700; color:var(--warning);">
-                    ฿${p.price} → ฿${q.newPrice}
-                  </div>
-                  <button type="button" data-remove-idx="${idx}" style="border:none; background:transparent; color:var(--danger); font-size:0.72rem; cursor:pointer; padding:0;">
-                    ลบออก
-                  </button>
-                </div>
-              </div>
-            `;
-          }).join('');
-
-          listEl.querySelectorAll('[data-remove-idx]').forEach(btn => {
-            btn.addEventListener('click', () => {
-              const idx = Number(btn.getAttribute('data-remove-idx'));
-              stockUpdateQueue.splice(idx, 1);
-              renderRightSummary();
-            });
-          });
-        }
-
-        row1Label.textContent = 'รายการรอดำเนินการ';
-        row1Val.textContent = `${stockUpdateQueue.length} รายการ`;
-        row2Label.textContent = 'สถานะ';
-        row2Val.textContent = stockUpdateQueue.length > 0 ? 'รอกดยืนยัน' : '-';
-      }
-    }
-
-    function switchWorkspaceTab(tab) {
-      activeTab = tab;
-      const saleBtn = document.getElementById('navSaleBtn');
-      const stockBtn = document.getElementById('navStockBtn');
-      const pill = document.getElementById('currentModeIndicator');
-      const editForm = document.getElementById('stockEditForm');
-
-      if (tab === 'SALE') {
-        saleBtn.classList.add('active');
-        saleBtn.setAttribute('aria-selected', 'true');
-        stockBtn.classList.remove('active');
-        stockBtn.setAttribute('aria-selected', 'false');
-        pill.className = 'mode-pill';
-        pill.textContent = '🛒 โหมดขายหน้าร้าน: การ์ดรวมชิ้นเล็ก (ค่าเริ่มต้น) และแพ็คใหญ่ไว้ในใบเดียว';
-        editForm.hidden = true;
-      } else {
-        stockBtn.classList.add('active');
-        stockBtn.setAttribute('aria-selected', 'true');
-        saleBtn.classList.remove('active');
-        saleBtn.setAttribute('aria-selected', 'false');
-        pill.className = 'mode-pill stock-mode';
-        pill.textContent = '📦 โหมดจัดการคลัง: คลิกการ์ดเพื่อเพิ่มสต็อก ปรับราคา หรือ ✂️ แกะแพ็คใหญ่เป็นชิ้นเล็ก';
-      }
-
-      if (selectedCategoryId) {
-        renderProductGrid();
-      } else {
-        closeCategoryToHome();
-      }
-      renderRightSummary();
-    }
-
-    // Real-Time Top Search Bar
-    const searchInput = document.getElementById('realtimeSearchInput');
-    const searchDropdown = document.getElementById('realtimeSearchDropdown');
-    const clearSearchBtn = document.getElementById('clearSearchBtn');
-
-    searchInput.addEventListener('input', () => {
-      const query = searchInput.value.trim().toLowerCase();
-      clearSearchBtn.hidden = query.length === 0;
-
-      if (!query) {
-        searchDropdown.hidden = true;
-        return;
-      }
-
-      const keywords = query.split(/\s+/).filter(Boolean);
-      const matches = products.filter(p => {
-        const hay = `${p.sku} ${p.name}`.toLowerCase();
-        return keywords.every(kw => hay.includes(kw));
-      }).slice(0, 8);
-
-      if (matches.length === 0) {
-        searchDropdown.innerHTML = `<div style="padding:12px 14px; font-size:0.85rem; color:var(--muted);">ไม่พบสินค้าที่ตรงกับ "${searchInput.value}"</div>`;
-        searchDropdown.hidden = false;
-        return;
-      }
-
-      searchDropdown.innerHTML = matches.map(p => `
-        <div class="search-result-item" data-search-sku="${p.sku}">
-          <div class="sr-left">
-            <span class="sr-sku">${p.sku}</span>
-            <span class="sr-name">${p.name}</span>
-          </div>
-          <div class="sr-right">
-            <span class="sr-stock">เหลือ ${p.stock} ${p.unit}</span>
-            <span class="sr-price">฿${p.price.toLocaleString()}</span>
-          </div>
-        </div>
-      `).join('');
-      searchDropdown.hidden = false;
-
-      searchDropdown.querySelectorAll('[data-search-sku]').forEach(row => {
-        row.addEventListener('click', () => {
-          const sku = row.getAttribute('data-search-sku');
-          const base = getBaseSku(sku);
-          cardUnitSelection[base] = isPackSku(sku) ? 'PACK' : 'PIECE';
-          handleProductSelection(sku);
-          searchInput.value = '';
-          clearSearchBtn.hidden = true;
-          searchDropdown.hidden = true;
-        });
-      });
-    });
-
-    clearSearchBtn.addEventListener('click', () => {
-      searchInput.value = '';
-      clearSearchBtn.hidden = true;
-      searchDropdown.hidden = true;
-      searchInput.focus();
-    });
-
-    document.addEventListener('click', (e) => {
-      if (!e.target.closest('.search-wrapper')) {
-        searchDropdown.hidden = true;
-      }
-    });
-
-    // Confirmation Modal & Printable Receipt Flow
-    const confirmModal = document.getElementById('confirmModal');
-    const receiptPrintModal = document.getElementById('receiptPrintModal');
-
-    document.getElementById('primaryConfirmBtn').addEventListener('click', () => {
-      const titleEl = document.getElementById('confirmModalTitle');
-      const subEl = document.getElementById('confirmModalSubtitle');
-      const bodyEl = document.getElementById('confirmModalBody');
-      const commitBtn = document.getElementById('commitModalBtn');
-
-      if (activeTab === 'SALE') {
-        if (saleCart.length === 0) return;
-        const billNo = `BILL-${String(billCounter).padStart(3, '0')}`;
-        let total = 0;
-        const rows = saleCart.map(item => {
-          const p = products.find(x => x.sku === item.sku);
-          const line = p.price * item.qty;
-          total += line;
-          return `<div style="display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px dashed var(--border);">
-            <span>${p.name} x${item.qty} ${p.unit}</span>
-            <strong>฿${line.toLocaleString()}</strong>
-          </div>`;
-        }).join('');
-
-        titleEl.textContent = `ยืนยันการออกบิล ${billNo} และตัดสต็อก`;
-        subEl.textContent = 'ตรวจสอบรายการสินค้าและยอดชำระก่อนตัดสต็อกและเปิดหน้าพิมพ์ใบเสร็จ';
-        bodyEl.innerHTML = `${rows}<div style="display:flex; justify-content:space-between; margin-top:10px; font-size:1rem; font-weight:700;"><span>ยอดชำระสุทธิ</span><span style="color:var(--brand);">฿${total.toLocaleString()}</span></div>`;
-        commitBtn.className = 'btn btn-primary';
-        commitBtn.textContent = '✓ ยืนยันตัดสต็อกและเปิดบิลพิมพ์';
-        confirmModal.classList.add('open');
-      } else {
-        if (stockUpdateQueue.length === 0) return;
-        const rows = stockUpdateQueue.map(q => {
-          if (q.type === 'UNPACK') {
-            const packP = products.find(x => x.sku === q.packSku);
-            const pieceP = products.find(x => x.sku === q.pieceSku);
-            const addPieces = q.unpackCount * q.packSize;
-            return `<div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px dashed var(--border);">
-              <div>
-                <strong>✂️ แกะแพ็ค: ${pieceP.name}</strong>
-                <div style="font-size:0.75rem; color:var(--muted);">หัก ${packP.sku} (-${q.unpackCount} ${packP.unit}) → เพิ่ม ${pieceP.sku} (+${addPieces} ${pieceP.unit})</div>
-              </div>
-              <div style="text-align:right; font-weight:700; color:var(--pack);">
-                +${addPieces} ${pieceP.unit}
-              </div>
-            </div>`;
-          }
-          const p = products.find(x => x.sku === q.sku);
-          return `<div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px dashed var(--border);">
-            <div>
-              <strong>${p.name}</strong>
-              <div style="font-size:0.75rem; color:var(--muted);">สต็อก: ${p.stock} → <strong>${p.stock + q.addQty} ${p.unit}</strong> (+${q.addQty})</div>
-            </div>
-            <div style="text-align:right; font-weight:700; color:var(--warning);">
-              ราคา: ฿${p.price} → ฿${q.newPrice}
-            </div>
-          </div>`;
-        }).join('');
-
-        titleEl.textContent = 'ยืนยันการปรับปรุงสต็อก / แกะแพ็คสินค้า';
-        subEl.textContent = 'กรุณาตรวจสอบรายการเปลี่ยนแปลงจำนวนสต็อกและราคาก่อนบันทึก';
-        bodyEl.innerHTML = rows;
-        commitBtn.className = 'btn btn-warning';
-        commitBtn.textContent = '✓ ยืนยันบันทึกการปรับปรุง';
-        confirmModal.classList.add('open');
-      }
-    });
-
-    document.getElementById('cancelModalBtn').addEventListener('click', () => {
-      confirmModal.classList.remove('open');
-    });
-
-    document.getElementById('commitModalBtn').addEventListener('click', () => {
-      if (activeTab === 'SALE') {
-        const now = new Date();
-        const billNo = `BILL-${String(billCounter).padStart(3, '0')}`;
-        let totalQty = 0;
-        let netTotal = 0;
-
-        const billItems = saleCart.map(item => {
-          const p = products.find(x => x.sku === item.sku);
-          const lineTotal = p.price * item.qty;
-          totalQty += item.qty;
-          netTotal += lineTotal;
-          p.stock = Math.max(0, p.stock - item.qty);
-          return {
-            sku: p.sku,
-            name: p.name,
-            unit: p.unit,
-            qty: item.qty,
-            price: p.price,
-            lineTotal
-          };
-        });
-
-        lastCompletedBill = {
-          billNo,
-          dateStr: now.toLocaleDateString('th-TH'),
-          timeStr: now.toTimeString().slice(0, 5),
-          totalQty,
-          netTotal,
-          items: billItems
-        };
-
-        saleCart = [];
-        billCounter += 1;
-        confirmModal.classList.remove('open');
-        if (selectedCategoryId) renderProductGrid();
-        renderRightSummary();
-
-        renderPrintableReceipt();
-        receiptPrintModal.classList.add('open');
-      } else {
-        stockUpdateQueue.forEach(q => {
-          if (q.type === 'UNPACK') {
-            const packP = products.find(x => x.sku === q.packSku);
-            const pieceP = products.find(x => x.sku === q.pieceSku);
-            if (packP && pieceP) {
-              packP.stock = Math.max(0, packP.stock - q.unpackCount);
-              pieceP.stock += q.unpackCount * q.packSize;
-            }
-          } else {
-            const p = products.find(x => x.sku === q.sku);
-            if (p) {
-              p.stock += q.addQty;
-              p.price = q.newPrice;
-            }
-          }
-        });
-        stockUpdateQueue = [];
-        document.getElementById('stockEditForm').hidden = true;
-        selectedEditSku = null;
-        confirmModal.classList.remove('open');
-        if (selectedCategoryId) renderProductGrid();
-        renderRightSummary();
-      }
-    });
-
-    // Receipt Print Modal Controls
-    document.querySelectorAll('[data-print-format]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('[data-print-format]').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        selectedPrintFormat = btn.getAttribute('data-print-format');
-        renderPrintableReceipt();
-      });
-    });
-
-    document.getElementById('triggerPrintBtn').addEventListener('click', () => {
-      try { window.print(); } catch (e) {}
-    });
-
-    document.getElementById('closeReceiptModalBtn').addEventListener('click', () => {
-      receiptPrintModal.classList.remove('open');
-    });
-
-    document.getElementById('reopenLastReceiptBtn').addEventListener('click', () => {
-      if (!lastCompletedBill) return;
-      renderPrintableReceipt();
-      receiptPrintModal.classList.add('open');
-    });
-
-    document.getElementById('copyReceiptTextBtn').addEventListener('click', async (e) => {
-      if (!lastCompletedBill) return;
-      const lines = lastCompletedBill.items.map((i, idx) => `${idx + 1}. ${i.name} x${i.qty} ${i.unit} = ฿${i.lineTotal.toLocaleString()}`);
-      const txt = [
-        `บิลเงินสด: ${lastCompletedBill.billNo}`,
-        `วันที่: ${lastCompletedBill.dateStr} ${lastCompletedBill.timeStr} น.`,
-        `------------------------`,
-        ...lines,
-        `------------------------`,
-        `ยอดชำระสุทธิ: ฿${lastCompletedBill.netTotal.toLocaleString()}`
-      ].join('\n');
-      try {
-        await navigator.clipboard.writeText(txt);
-        const btn = e.currentTarget;
-        btn.textContent = '✓ คัดลอกแล้ว';
-        setTimeout(() => { btn.textContent = 'คัดลอกข้อความบิล'; }, 1800);
-      } catch (err) {}
-    });
-
-    document.getElementById('clearSummaryBtn').addEventListener('click', () => {
-      if (activeTab === 'SALE') {
-        saleCart = [];
-      } else {
-        stockUpdateQueue = [];
-      }
-      renderRightSummary();
-    });
-
-    document.getElementById('navSaleBtn').addEventListener('click', () => switchWorkspaceTab('SALE'));
-    document.getElementById('navStockBtn').addEventListener('click', () => switchWorkspaceTab('STOCK'));
-    document.getElementById('backToCategoriesBtn').addEventListener('click', closeCategoryToHome);
-
-    // Initialize
-    renderCategoryGrid();
-    renderRightSummary();
-  </script>
-</body>
-</html>
+    .invoice-sheet { background: #ffffff; color: #0f172a; border: 1px solid var(--border-strong); border-radius: 6px; padding: 16px 20px; font-size: 0.8125rem; }
+    .invoice-sheet.format-80mm { max-width: 310px; margin: 0 auto; }
+    .invoice-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #0f172a; padding-bottom: 8px; margin-bottom: 10px; gap: 12px; }
+    .invoice-copy-badge { display: inline-block; font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border: 1px solid #0f172a; border-radius: 4px; white-space: nowrap; }
+    .invoice-table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 0.8125rem; }
+    .invoice-table th, .invoice-table td { padding: 5px 6px; border-bottom: 1px solid #cbd5e1; text-align: left; }
+    .invoice-table th.num, .invoice-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+    .invoice-table th { background: #f1f5f9; color: #0f172a; font-weight: 700; }
+    .invoice-totals { margin-top: 8px; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+    .invoice-signatures { display: flex; justify-content: space-between; gap: 24px; margin-top: 16px; padding-top: 8px; font-size: 0.75rem; text-align: center; }
+    .sig-box { flex: 1; }
+    .sig-line { border-bottom: 1px dotted #475569; height: 22px; margin-bottom: 4px; }
+    .cut-divider { border-top: 1px dashed #64748b; margin: 14px 0; text-align: center; font-size: 0.75rem; color: #475569; }
+
+    .db-status-msg { font-size: 0.82rem; padding: 10px 12px; border-radius: var(--radius-sm); margin-bottom: 12px; border: 1px solid var(--border); background: var(--surface-subtle); }
+    .db-status-msg.error { background: var(--danger-soft); color: var(--danger); border-color: #fecaca; }
+    .db-status-msg.success { background: var(--success-soft); color: var(--success); border-color: #bbf7d0; }
+
+    .r
