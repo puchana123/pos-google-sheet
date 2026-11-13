@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Smart Visual POS & Stock — ระบบขายหน้าร้านและจัดการสต็อก (3-Level SKU Drill-Down)</title>
+  <title>Smart Visual POS & Stock — ระบบขายหน้าร้านและจัดการสต็อก (3-Level SKU)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -143,16 +143,40 @@
       box-shadow: 0 4px 12px rgba(15, 118, 110, 0.35);
     }
 
-    .rail-footer { text-align: center; width: 100%; }
-    .sample-tag {
-      display: inline-block;
-      font-size: 0.625rem;
-      font-weight: 600;
-      color: #cbd5e1;
+    /* Small Subtle Bottom Buttons on Left Rail */
+    .rail-footer {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      width: 100%;
+    }
+
+    .mini-footer-btn {
+      width: 100%;
+      border: 1px solid #334155;
       background: #1e293b;
-      padding: 4px 6px;
-      border-radius: 6px;
-      line-height: 1.2;
+      color: #cbd5e1;
+      font: inherit;
+      font-size: 0.65rem;
+      font-weight: 600;
+      padding: 6px 4px;
+      border-radius: 8px;
+      cursor: pointer;
+      line-height: 1.25;
+      text-align: center;
+      transition: all 0.15s ease;
+    }
+
+    .mini-footer-btn:hover {
+      background: #334155;
+      color: #ffffff;
+    }
+
+    .mini-footer-btn.connected {
+      background: #064e3b;
+      border-color: #059669;
+      color: #a7f3d0;
     }
 
     /* 2. Center Workspace */
@@ -770,8 +794,8 @@
     .modal-backdrop {
       position: fixed;
       inset: 0;
-      background: rgba(15, 23, 42, 0.55);
-      backdrop-filter: blur(2px);
+      background: rgba(15, 23, 42, 0.58);
+      backdrop-filter: blur(3px);
       display: none;
       align-items: center;
       justify-content: center;
@@ -804,7 +828,7 @@
 
     .modal-actions { display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
 
-    /* Printable Receipt & Database Modal Styles */
+    /* Printable Receipt & First-Run DB Modal Styles */
     .receipt-modal-card { max-width: 680px; max-height: 92vh; overflow-y: auto; }
     .print-format-bar {
       display: flex;
@@ -862,7 +886,6 @@
     .db-status-msg.success { background: var(--success-soft); color: var(--success); border-color: #bbf7d0; }
 
     .radio-card { display: flex; align-items: flex-start; gap: 8px; padding: 9px 12px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--surface-subtle); cursor: pointer; font-size: 0.8rem; margin-bottom: 6px; }
-    .code-snippet-box { background: #0f172a; color: #e2e8f0; padding: 12px; border-radius: var(--radius-sm); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.72rem; overflow-x: auto; max-height: 200px; margin-top: 8px; white-space: pre; user-select: text; }
 
     @media print {
       @page { margin: 8mm; }
@@ -877,7 +900,7 @@
 <body>
 
   <div class="app-shell">
-    <!-- 1. Left Sidebar Rail -->
+    <!-- 1. Left Sidebar Rail (Only 2 Main Tabs + Subtle Small DB Button at Bottom) -->
     <aside class="left-rail" aria-label="เมนูหลักด้านซ้าย">
       <div class="rail-brand">
         <div class="rail-logo">POS</div>
@@ -900,22 +923,16 @@
           </svg>
           <span>เพิ่มสต็อก /<br>✂️ แกะแพ็ค</span>
         </button>
-
-        <button type="button" class="rail-tab-btn" id="openDbModalBtn" title="ตั้งค่าเชื่อมต่อฐานข้อมูล Google Sheets">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <ellipse cx="12" cy="5" rx="9" ry="3"/>
-            <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
-            <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
-          </svg>
-          <span>เชื่อม DB<br>(Sheets)</span>
-        </button>
       </nav>
 
+      <!-- Small subtle buttons at the very bottom of the left rail -->
       <div class="rail-footer">
-        <button type="button" id="quickSyncRailBtn" class="rail-tab-btn" hidden style="padding:6px 4px; margin-bottom:6px; background:#1e293b; color:#38bdf8; font-size:0.65rem;" title="ดึงข้อมูลล่าสุดจาก Google Sheets">
-          🔄 ซิงค์ DB
+        <button type="button" id="quickSyncRailBtn" class="mini-footer-btn" hidden title="ดึงข้อมูลล่าสุดจาก Google Sheets">
+          🔄 ซิงค์ข้อมูล
         </button>
-        <span class="sample-tag" id="dbStatusRailBadge">Sample<br>Data</span>
+        <button type="button" id="smallBottomDbBtn" class="mini-footer-btn" title="คลิกเพื่อตั้งค่าการเชื่อมต่อฐานข้อมูล Google Sheets">
+          🔐 ตั้งค่า DB<br><span style="font-size:0.58rem; opacity:0.8;">(โหมดเดโม่)</span>
+        </button>
       </div>
     </aside>
 
@@ -1096,15 +1113,15 @@
     </div>
   </div>
 
-  <!-- Database Connection & Code.gs Modal -->
-  <div class="modal-backdrop" id="dbConnectModal" role="dialog" aria-modal="true" aria-labelledby="dbModalTitle">
-    <div class="modal-card receipt-modal-card">
+  <!-- First-Launch Database Connection Prompt Modal (Opens automatically on first visit) -->
+  <div class="modal-backdrop open" id="dbConnectModal" role="dialog" aria-modal="true" aria-labelledby="dbModalTitle">
+    <div class="modal-card" style="max-width:520px;">
       <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px;">
-        <h3 class="modal-title" id="dbModalTitle" style="margin:0;">🔐 ตั้งค่าเชื่อมต่อฐานข้อมูล Google Sheets (Database)</h3>
-        <span class="summary-badge" id="dbModalStatusBadge">โหมดข้อมูลตัวอย่าง</span>
+        <h3 class="modal-title" id="dbModalTitle" style="margin:0;">🔐 เชื่อมต่อฐานข้อมูลร้านค้า (Google Sheets)</h3>
+        <span class="summary-badge" id="dbModalStatusBadge">โหมดข้อมูลเดโม่</span>
       </div>
       <p style="margin:0 0 12px; font-size:0.8rem; color:var(--muted);">
-        กรอก Web App URL และรหัส PIN ของร้านเพื่อดึงรายการสินค้าจริง (รวมถึงรูปภาพจากคอลัมน์ C) และบันทึกการตัดสต็อก/แกะแพ็คลง Google Sheets อัตโนมัติ
+        กรอกลิงก์ Web App URL และรหัส PIN เพื่อดึงข้อมูลจริงจาก Google Sheets หรือกดปุ่ม <strong>"ใช้งานด้วยข้อมูลเดโม่"</strong> ด้านล่างหากยังไม่ต้องการเชื่อมต่อ
       </p>
 
       <div id="dbModalAlert" class="db-status-msg" hidden></div>
@@ -1119,7 +1136,7 @@
             id="gasUrlInput"
             class="search-input"
             style="border:1px solid var(--border-strong); border-radius:8px; padding:9px 12px; background:var(--surface);"
-            placeholder="วางลิงก์ Web App URL ที่ลงท้ายด้วย /exec ของคุณที่นี่"
+            placeholder="วางลิงก์ Web App URL ของคุณที่นี่"
             autocomplete="off"
           >
         </div>
@@ -1142,28 +1159,30 @@
             <input type="radio" name="dbPersistMode" value="REMEMBER" checked>
             <div>
               <strong>จำการเชื่อมต่อไว้ในเครื่องนี้อัตโนมัติ (Remember Device)</strong>
-              <div style="color:var(--muted); font-size:0.74rem;">เปิดใช้งานครั้งถัดไป ระบบจะซิงค์ข้อมูลจาก Google Sheets ทันทีโดยไม่ต้องกรอกรหัสใหม่</div>
+              <div style="color:var(--muted); font-size:0.74rem;">เปิดใช้งานครั้งถัดไปจะซิงค์ข้อมูลจาก Google Sheets ทันทีโดยไม่ถามซ้ำ</div>
             </div>
           </label>
           <label class="radio-card">
             <input type="radio" name="dbPersistMode" value="SESSION">
             <div>
               <strong>ถามรหัส PIN ทุกครั้งที่เปิดหน้าเว็บใหม่ (Session Lock)</strong>
-              <div style="color:var(--muted); font-size:0.74rem;">จำเฉพาะ URL ไว้ แต่ต้องใส่รหัส PIN ใหม่เมื่อปิดเบราว์เซอร์แล้วเปิดใหม่</div>
+              <div style="color:var(--muted); font-size:0.74rem;">จำเฉพาะลิงก์ไว้ แต่ถามรหัส PIN ทุกครั้งเมื่อเปิดเบราว์เซอร์ใหม่</div>
             </div>
           </label>
         </div>
 
-        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;">
-          <button type="submit" id="dbConnectSubmitBtn" class="btn btn-primary" style="flex:1;">
+        <div style="display:flex; flex-direction:column; gap:8px; margin-top:14px;">
+          <button type="submit" id="dbConnectSubmitBtn" class="btn btn-primary" style="width:100%;">
             ☁️ เชื่อมต่อและดึงข้อมูลจาก Google Sheets
           </button>
-          <button type="button" id="clearDbSavedBtn" class="btn btn-secondary" style="color:var(--danger);">
-            ล้างค่าที่จำไว้
-          </button>
-          <button type="button" id="closeDbModalBtn" class="btn btn-secondary">
-            ปิดหน้าต่าง
-          </button>
+          <div style="display:flex; gap:8px;">
+            <button type="button" id="useDemoDataBtn" class="btn btn-secondary" style="flex:1;">
+              🧪 ใช้งานด้วยข้อมูลเดโม่ (ไม่เชื่อมต่อ DB)
+            </button>
+            <button type="button" id="clearDbSavedBtn" class="btn btn-secondary" style="color:var(--danger); font-size:0.8rem; padding:8px 12px;">
+              ล้างค่าที่จำไว้
+            </button>
+          </div>
         </div>
       </form>
     </div>
@@ -1221,8 +1240,7 @@
       }
     ];
 
-    // Sample Products formatted with multi-part SKUs (e.g., HK-DMN-BLK-01, HK-DMN-GLD-05)
-    // so you can test the 2-part SKU Prefix Card grouping -> Remainder Sub-item Cards immediately.
+    // Demo Products Dataset (Used when user chooses Demo Mode instead of connecting DB)
     const products = [
       // Group 1: HK-DMN (เบ็ดไดม่อน)
       { sku: 'HK-DMN-BLK-01', catId: 'CAT-HOOK', name: 'เบ็ดไดม่อน สีดำ เบอร์ 1', price: 45, stock: 20, unit: 'กล่อง' },
@@ -1252,7 +1270,6 @@
       { sku: 'PE-X8-GRN-30', catId: 'CAT-LINE', name: 'สายถัก PE ถัก 8 สีเขียว เบอร์ 3.0', price: 290, stock: 7, unit: 'ม้วน' }
     ];
 
-    // Navigation & State
     let activeTab = 'SALE'; // 'SALE' | 'STOCK'
     let selectedCategoryId = null;     // Level 1: Category ID
     let selectedSkuPrefix = null;      // Level 2: First 2 parts of SKU (e.g., "HK-DMN")
@@ -1262,13 +1279,10 @@
     let lastCompletedBill = null;
     let selectedPrintFormat = 'a4-dup';
 
-    // Per-card unit toggle: key = baseSku (without -PK), value = 'PIECE' (default) | 'PACK'
     const cardUnitSelection = {};
-
     let saleCart = [];
     let stockUpdateQueue = [];
 
-    // Google Sheets Database Sync State
     let activeScriptUrl = '';
     let activeSecretPin = '';
     let isCloudConnected = false;
@@ -1283,10 +1297,7 @@
     ];
 
     // =========================================================================
-    // SKU Parsing Helpers:
-    // - Base SKU (strip -PK): "HK-DMN-BLK-05-PK" -> "HK-DMN-BLK-05"
-    // - First 2 Parts (Main Group): "HK-DMN-BLK-05" -> "HK-DMN"
-    // - Remainder Parts (Sub-item label): "HK-DMN-BLK-05" -> "BLK-05"
+    // SKU Parsing Helpers (First 2 parts = Parent Card, Remainder = Sub-Card)
     // =========================================================================
     function isPackSku(sku) {
       return /-PK$/i.test(String(sku || '').trim());
@@ -1316,7 +1327,6 @@
 
     function cleanGroupDisplayName(sampleName, prefix2) {
       if (!sampleName) return prefix2;
-      // Strip trailing size/number details to get a clean series name for the parent card
       const cleaned = String(sampleName)
         .replace(/\s*\(.*?\)\s*/g, '')
         .replace(/\s*(เบอร์|ขนาด|ไซส์)\s*[\w.]+.*$/i, '')
@@ -1340,7 +1350,6 @@
       return m ? Math.max(1, parseInt(m[1], 10)) : 10;
     }
 
-    // Group products inside a category by the first 2 parts of SKU (Level 2 Parent Cards)
     function getPrefixGroupsForCategory(catId) {
       const catProducts = products.filter(p => p.catId === catId);
       const groupMap = new Map();
@@ -1374,7 +1383,6 @@
       return Array.from(groupMap.values());
     }
 
-    // Get unified sub-item cards (each card combines Small Piece + Big Pack -PK) for a selected 2-part SKU prefix
     function getUnifiedSubCardsForPrefix(catId, prefix2) {
       const matching = products.filter(p => p.catId === catId && getSkuPrefix2(p.sku) === prefix2);
       const baseMap = new Map();
@@ -1427,7 +1435,6 @@
       });
     }
 
-    // Level 1: Back to all categories
     function closeCategoryToHome() {
       selectedCategoryId = null;
       selectedSkuPrefix = null;
@@ -1441,7 +1448,6 @@
       document.getElementById('stageSubHint').textContent = 'รวมรหัส SKU 2 ส่วนแรกเป็น 1 การ์ดรุ่น ก่อนกดเข้าไปเลือกเบอร์ย่อย';
     }
 
-    // Level 2: Show Parent Cards grouped by First 2 Parts of SKU (e.g., HK-DMN, HK-BLK)
     function openCategoryLevel2(catId) {
       selectedCategoryId = catId;
       selectedSkuPrefix = null;
@@ -1464,11 +1470,9 @@
       renderPrefixGroupGrid();
     }
 
-    // Level 3: Show Sub-item Cards (Remainder of SKU, e.g., BLK-01, BLK-05) inside the chosen 2-part Prefix
     function openPrefixGroupLevel3(prefix2) {
       selectedSkuPrefix = prefix2;
       selectedEditSku = null;
-      const cat = categories.find(c => c.id === selectedCategoryId);
       const subCards = getUnifiedSubCardsForPrefix(selectedCategoryId, prefix2);
 
       document.getElementById('backToCategoriesBtn').hidden = false;
@@ -1538,7 +1542,6 @@
         const packProd = group.packProduct;
         const hasBoth = Boolean(group.pieceProduct && group.packProduct);
 
-        // Default is always PIECE ('ชิ้นเล็ก')
         const currentUnitMode = (hasBoth && cardUnitSelection[group.baseSku] === 'PACK') ? 'PACK' : 'PIECE';
         const activeProd = currentUnitMode === 'PACK' && packProd ? packProd : pieceProd;
         const isSelectedForEdit = activeTab === 'STOCK' && selectedEditSku && getBaseSku(selectedEditSku) === group.baseSku;
@@ -1575,18 +1578,15 @@
           <div class="product-card ${currentUnitMode === 'PACK' ? 'pack-mode-active' : ''} ${activeTab === 'STOCK' ? 'stock-edit-card' : ''} ${isSelectedForEdit ? 'selected-for-edit' : ''}" data-card-sku="${activeProd.sku}" data-base-sku="${group.baseSku}">
             ${toggleHtml}
 
-            <!-- Remaining Stock at Top-Right Corner -->
             <span class="prod-stock-badge ${currentUnitMode === 'PACK' ? 'pack-stock' : ''} ${isLow ? 'low' : ''}">
               เหลือ ${activeProd.stock} ${activeProd.unit}
             </span>
 
-            <!-- Product Image Centered + Remainder of SKU Badge -->
             <div class="prod-center-image" style="background:${cat ? cat.bg : '#f1f5f9'};">
               ${centerVisualHtml}
               <span class="prod-spec-pill ${currentUnitMode === 'PACK' ? 'pack-pill' : ''}">${badgeLabel}</span>
             </div>
 
-            <!-- Product Name & Details at the Bottom -->
             <div class="prod-bottom-info">
               <h3 class="prod-name" title="${activeProd.name}">${pieceProd.name}</h3>
               ${packSubHint}
@@ -1599,7 +1599,6 @@
         `;
       }).join('');
 
-      // Bind unit switcher buttons inside sub-card
       container.querySelectorAll('[data-toggle-base] .unit-opt-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
           e.stopPropagation();
@@ -1614,7 +1613,6 @@
         });
       });
 
-      // Bind main sub-card click
       container.querySelectorAll('[data-card-sku]').forEach(card => {
         card.addEventListener('click', () => {
           const sku = card.getAttribute('data-card-sku');
@@ -1775,7 +1773,7 @@
     });
 
     // =========================================================================
-    // Google Sheets Cloud Sync
+    // Google Sheets Cloud Sync & Subtle Bottom Button Status
     // =========================================================================
     async function callGoogleSheetsApi(action, extraPayload = {}) {
       const response = await fetch(activeScriptUrl, {
@@ -1795,21 +1793,19 @@
     }
 
     function updateDbConnectionIndicators(storeName) {
-      const railBadge = document.getElementById('dbStatusRailBadge');
+      const bottomBtn = document.getElementById('smallBottomDbBtn');
       const modalBadge = document.getElementById('dbModalStatusBadge');
       const syncBtn = document.getElementById('quickSyncRailBtn');
 
       if (isCloudConnected) {
-        railBadge.innerHTML = '☁️ Sheets<br>Connected';
-        railBadge.style.background = '#065f46';
-        railBadge.style.color = '#a7f3d0';
+        bottomBtn.classList.add('connected');
+        bottomBtn.innerHTML = '☁️ Sheets<br><span style="font-size:0.58rem;">(เชื่อมต่อแล้ว)</span>';
         modalBadge.textContent = storeName ? `☁️ เชื่อมต่อแล้ว: ${storeName}` : '☁️ เชื่อมต่อ Google Sheets แล้ว';
         syncBtn.hidden = false;
       } else {
-        railBadge.innerHTML = 'Sample<br>Data';
-        railBadge.style.background = '#1e293b';
-        railBadge.style.color = '#cbd5e1';
-        modalBadge.textContent = 'โหมดข้อมูลตัวอย่าง';
+        bottomBtn.classList.remove('connected');
+        bottomBtn.innerHTML = '🔐 ตั้งค่า DB<br><span style="font-size:0.58rem; opacity:0.8;">(โหมดเดโม่)</span>';
+        modalBadge.textContent = 'โหมดข้อมูลเดโม่';
         syncBtn.hidden = true;
       }
     }
@@ -1821,7 +1817,7 @@
       if (!activeScriptUrl || !activeSecretPin) {
         alertBox.hidden = false;
         alertBox.className = 'db-status-msg error';
-        alertBox.textContent = '⚠️ กรุณากรอกลิงก์ Web App URL และรหัสผ่าน PIN ให้ครบทั้ง 2 ช่อง';
+        alertBox.textContent = '⚠️ กรุณากรอกลิงก์ Web App URL และรหัสผ่าน PIN ให้ครบทั้ง 2 ช่อง (หรือกดปุ่มใช้งานด้วยข้อมูลเดโม่)';
         return;
       }
 
@@ -1885,9 +1881,8 @@
         }
 
         updateDbConnectionIndicators(data.storeName || '');
-        alertBox.hidden = false;
-        alertBox.className = 'db-status-msg success';
-        alertBox.textContent = `✅ เชื่อมต่อสำเร็จ! โหลดสินค้า ${products.length} รหัส (${categories.length} หมวดหมู่) เรียบร้อยแล้ว`;
+        alertBox.hidden = true;
+        document.getElementById('dbConnectModal').classList.remove('open');
 
         closeCategoryToHome();
         renderCategoryGrid();
@@ -2466,14 +2461,14 @@
       } catch (err) {}
     });
 
-    // Database Connection Modal Controls
+    // Subtle Small Bottom DB Button & First-Launch Prompt Logic
     const dbConnectModal = document.getElementById('dbConnectModal');
 
-    document.getElementById('openDbModalBtn').addEventListener('click', () => {
+    document.getElementById('smallBottomDbBtn').addEventListener('click', () => {
       dbConnectModal.classList.add('open');
     });
 
-    document.getElementById('closeDbModalBtn').addEventListener('click', () => {
+    document.getElementById('useDemoDataBtn').addEventListener('click', () => {
       dbConnectModal.classList.remove('open');
     });
 
@@ -2534,7 +2529,8 @@
       if (selectedCategoryId) openCategoryLevel2(selectedCategoryId);
     });
 
-    // Auto-load saved credentials if available
+    // Check saved credentials on first launch:
+    // If saved URL & PIN exist, auto-connect and close modal; otherwise keep the modal open to ask first.
     try {
       const savedUrl = localStorage.getItem('VISUAL_POS_GAS_URL') || '';
       const savedPin = localStorage.getItem('VISUAL_POS_PIN') || sessionStorage.getItem('VISUAL_POS_PIN') || '';
